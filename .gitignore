@@ -34,3 +34,6 @@ google-services.json
 
 # Python Virtual Environments
 .venv/
+
+# Backend Trained Models
+saved_models/
