@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">PlantBuddiesApp</string>
+
+    // Strings for the HomeScreen
+    <string name="welcome_title">Welcome to Plant Buddies!</string>
+    <string name="identify_description">Identify your plant.\nIf you\'re unsure which one it is,\nuse our camera feature to identify it instantly.</string>
+    <string name="search_hint">Search the plant\'s name</string>
+    <string name="search_icon_description">Search</string>
+    <string name="camera_icon_description">Camera</string>
+    <string name="identify_button">Identify plant</string>
 </resources>

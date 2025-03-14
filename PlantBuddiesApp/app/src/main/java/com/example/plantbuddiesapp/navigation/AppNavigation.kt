@@ -10,9 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.plantbuddiesapp.screens.Home.HomeScreen
-import com.example.plantbuddiesapp.screens.MyPlants.MyPlantsScreen
-import com.example.plantbuddiesapp.screens.User.UserScreen
+import com.example.plantbuddiesapp.ui.screens.Home.HomeScreen
+import com.example.plantbuddiesapp.ui.screens.MyPlants.MyPlantsScreen
+import com.example.plantbuddiesapp.ui.screens.User.UserScreen
 
 @Composable
 fun AppNavigation() {
