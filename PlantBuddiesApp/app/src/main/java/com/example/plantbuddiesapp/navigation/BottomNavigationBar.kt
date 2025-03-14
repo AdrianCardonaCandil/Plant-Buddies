@@ -28,6 +28,8 @@ fun BottomNavigationBar(navController: NavController) {
                             Screen.Home -> Icons.Default.Home
                             Screen.MyPlants -> Icons.Default.Grass
                             Screen.User -> Icons.Default.Person
+                            Screen.PlantCamera -> TODO()
+                            Screen.PlantResults -> TODO()
                         },
                         contentDescription = screen.route
                     )

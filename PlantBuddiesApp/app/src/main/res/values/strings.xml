@@ -8,4 +8,15 @@
     <string name="search_icon_description">Search</string>
     <string name="camera_icon_description">Camera</string>
     <string name="identify_button">Identify plant</string>
+
+    <!-- Camera Screen Strings -->
+    <string name="back_button">Back</string>
+    <string name="toggle_flash">Toggle flash</string>
+    <string name="capture_button">Capture</string>
+    <string name="center_plant_hint">Center your plant in the circle</string>
+    <string name="camera_permission_title">Camera Permission Required</string>
+    <string name="camera_permission_text">We need camera access to identify your plants. Please grant camera permission to continue.</string>
+    <string name="request_permission">Grant Permission</string>
+    <string name="cancel">Cancel</string>
+    <string name="camera_permission_rationale">You previously denied camera access. We need this permission to identify plants. Please grant camera access in your device settings or allow it now.</string>
 </resources>
