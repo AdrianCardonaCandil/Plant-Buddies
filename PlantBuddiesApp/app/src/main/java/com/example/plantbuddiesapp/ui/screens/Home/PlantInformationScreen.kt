@@ -63,11 +63,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.delay
@@ -82,7 +80,7 @@ data class PlantInfo(
 )
 
 @Composable
-fun PlantResultsScreen(navController: NavController, imageUri: Uri) {
+fun PlantInformationScreen(navController: NavController, imageUri: Uri) {
     val plantInfo = remember {
         PlantInfo(
             scientificName = "Monstera Deliciosa",

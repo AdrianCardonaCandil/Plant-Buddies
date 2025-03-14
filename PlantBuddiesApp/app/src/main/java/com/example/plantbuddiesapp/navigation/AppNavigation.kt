@@ -16,7 +16,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.plantbuddiesapp.ui.screens.Home.HomeScreen
-import com.example.plantbuddiesapp.ui.screens.Home.PlantResultsScreen
+import com.example.plantbuddiesapp.ui.screens.Home.PlantInformationScreen
 import com.example.plantbuddiesapp.ui.screens.MyPlants.MyPlantsScreen
 import com.example.plantbuddiesapp.ui.screens.User.UserScreen
 import com.example.plantbuddiesapp.ui.screens.Home.PlantCameraScreen
@@ -62,7 +62,7 @@ fun AppNavigation() {
                         val encodedUri = backStackEntry.arguments?.getString("encodedUri") ?: ""
                         val decodedUri =
                             URLDecoder.decode(encodedUri, StandardCharsets.UTF_8.toString())
-                        PlantResultsScreen(navController, Uri.parse(decodedUri))
+                        PlantInformationScreen(navController, Uri.parse(decodedUri))
                     }
                 }
             }
