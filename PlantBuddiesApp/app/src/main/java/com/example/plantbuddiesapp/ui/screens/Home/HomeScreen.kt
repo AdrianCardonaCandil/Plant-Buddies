@@ -54,7 +54,7 @@ fun HomeScreen(navController: NavHostController) {
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
+            Spacer(modifier = Modifier.height(50.dp))
             Image(
                 painter = painterResource(id = R.mipmap.ic_launcher_foreground),
                 contentDescription = stringResource(R.string.app_name),
@@ -79,7 +79,7 @@ fun HomeScreen(navController: NavHostController) {
                 lineHeight = 22.sp
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(50.dp))
 
             var isSearchFocused by remember { mutableStateOf(false) }
 
