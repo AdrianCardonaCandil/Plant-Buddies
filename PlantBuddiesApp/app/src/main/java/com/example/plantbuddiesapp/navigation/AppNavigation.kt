@@ -20,6 +20,7 @@ import com.example.plantbuddiesapp.ui.screens.Home.PlantInformationScreen
 import com.example.plantbuddiesapp.ui.screens.MyPlants.MyPlantsScreen
 import com.example.plantbuddiesapp.ui.screens.User.UserScreen
 import com.example.plantbuddiesapp.ui.screens.Home.PlantCameraScreen
+import com.example.plantbuddiesapp.ui.screens.MyPlants.AddPlantScreen
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
@@ -28,6 +29,9 @@ import java.nio.charset.StandardCharsets
 fun AppNavigation() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
+
+    val viewModel: PlantViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomBar = when (currentRoute) {
         Screen.PlantCamera.route,
@@ -46,6 +50,7 @@ fun AppNavigation() {
                 NavHost(navController = navController, startDestination = Screen.Home.route) {
                     composable(Screen.Home.route) { HomeScreen(navController) }
                     composable(Screen.MyPlants.route) { MyPlantsScreen(navController) }
+                    composable(Screen.AddPlant.route) { AddPlantScreen(navController, viewModel) }
                     composable(Screen.User.route) { UserScreen(navController) }
                     composable(Screen.PlantCamera.route) {
                         PlantCameraScreen(navController)
