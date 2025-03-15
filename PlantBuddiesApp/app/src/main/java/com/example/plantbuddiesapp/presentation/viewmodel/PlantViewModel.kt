@@ -4,9 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.plantbuddiesapp.domain.model.Plant
-import com.example.plantbuddiesapp.domain.usecase.GetUserPlantsUseCase
-import com.example.plantbuddiesapp.domain.usecase.IdentifyPlantUseCase
-import com.example.plantbuddiesapp.domain.usecase.SavePlantUseCase
+import com.example.plantbuddiesapp.domain.repository.PlantRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,9 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlantViewModel @Inject constructor(
-    private val identifyPlantUseCase: IdentifyPlantUseCase,
-    private val savePlantUseCase: SavePlantUseCase,
-    private val getUserPlantsUseCase: GetUserPlantsUseCase
+    private val plantRepository: PlantRepository
 ) : ViewModel() {
 
     private val _identificationState = MutableStateFlow<IdentificationState>(IdentificationState.Initial)
@@ -39,7 +35,7 @@ class PlantViewModel @Inject constructor(
         viewModelScope.launch {
             _identificationState.value = IdentificationState.Loading
 
-            identifyPlantUseCase(imageUri).fold(
+            plantRepository.identifyPlant(imageUri).fold(
                 onSuccess = { plant ->
                     _identificationState.value = IdentificationState.Success(plant)
                 },
@@ -54,7 +50,7 @@ class PlantViewModel @Inject constructor(
         viewModelScope.launch {
             _savePlantState.value = SavePlantState.Loading
 
-            savePlantUseCase(plant).fold(
+            plantRepository.savePlant(plant).fold(
                 onSuccess = { savedPlant ->
                     _savePlantState.value = SavePlantState.Success(savedPlant)
                     loadUserPlants() // Refresh plants list
@@ -68,7 +64,7 @@ class PlantViewModel @Inject constructor(
 
     fun loadUserPlants() {
         viewModelScope.launch {
-            getUserPlantsUseCase().collectLatest { plants ->
+            plantRepository.getUserPlants().collectLatest { plants ->
                 _userPlants.value = plants
             }
         }
