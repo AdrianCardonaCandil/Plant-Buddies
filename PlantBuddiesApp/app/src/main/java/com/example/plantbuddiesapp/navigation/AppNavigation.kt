@@ -20,17 +20,16 @@ import com.example.plantbuddiesapp.ui.screens.Home.PlantInformationScreen
 import com.example.plantbuddiesapp.ui.screens.MyPlants.MyPlantsScreen
 import com.example.plantbuddiesapp.ui.screens.User.UserScreen
 import com.example.plantbuddiesapp.ui.screens.Home.PlantCameraScreen
-import com.example.plantbuddiesapp.ui.screens.MyPlants.AddPlantScreen
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
-
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
-    val viewModel: PlantViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val viewModel: PlantViewModel = viewModel()
 
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomBar = when (currentRoute) {
@@ -50,11 +49,8 @@ fun AppNavigation() {
                 NavHost(navController = navController, startDestination = Screen.Home.route) {
                     composable(Screen.Home.route) { HomeScreen(navController) }
                     composable(Screen.MyPlants.route) { MyPlantsScreen(navController, viewModel) }
-                    composable(Screen.AddPlant.route) { AddPlantScreen(navController, viewModel) }
                     composable(Screen.User.route) { UserScreen(navController) }
-                    composable(Screen.PlantCamera.route) {
-                        PlantCameraScreen(navController)
-                    }
+                    composable(Screen.PlantCamera.route) { PlantCameraScreen(navController) }
                     composable(
                         route = "plantResults/{encodedUri}",
                         arguments = listOf(
@@ -70,8 +66,8 @@ fun AppNavigation() {
                         } catch (e: Exception) {
                             Uri.EMPTY
                         }
-                            //URLDecoder.decode(encodedUri, StandardCharsets.UTF_8.toString())
-                        //PlantInformationScreen(navController, Uri.parse(decodedUri), viewModel)
+                        // URLDecoder.decode(encodedUri, StandardCharsets.UTF_8.toString())
+                        // PlantInformationScreen(navController, Uri.parse(decodedUri), viewModel)
                         PlantInformationScreen(navController, decodedUri, viewModel)
                     }
 

@@ -28,7 +28,6 @@ fun BottomNavigationBar(navController: NavController) {
                             Screen.Home -> Icons.Default.Home
                             Screen.MyPlants -> Icons.Default.Grass
                             Screen.User -> Icons.Default.Person
-                            Screen.AddPlant -> TODO()
                             Screen.PlantCamera -> TODO()
                             Screen.PlantResults -> TODO()
                         },
@@ -42,11 +41,13 @@ fun BottomNavigationBar(navController: NavController) {
                         navController.navigate(screen.route) {
                             if (screen == Screen.Home) {
                                 popUpTo(Screen.Home.route) { inclusive = true }
+                                launchSingleTop = true
                             } else {
                                 popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
                             }
-                            launchSingleTop = true
-                            restoreState = true
+
                         }
                     }
                 },
