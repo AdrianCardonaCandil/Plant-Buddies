@@ -19,4 +19,11 @@
     <string name="request_permission">Grant Permission</string>
     <string name="cancel">Cancel</string>
     <string name="camera_permission_rationale">You previously denied camera access. We need this permission to identify plants. Please grant camera access in your device settings or allow it now.</string>
+
+
+    // Strings for the MyPlantsScreen
+    <string name="plants_empty_title">You don\'t have any plants</string>
+    <string name="plants_empty_description">Add your first plant and start caring for it.</string>
+    <string name="plants_empty_button">Add plants</string>
+
 </resources>
