@@ -1,4 +1,4 @@
-package com.example.plantbuddiesapp.ui.screens.Home
+package com.example.plantbuddiesapp.presentation.ui.screens.Home
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode

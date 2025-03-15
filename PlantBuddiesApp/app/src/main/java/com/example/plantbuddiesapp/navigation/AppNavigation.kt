@@ -15,11 +15,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.plantbuddiesapp.ui.screens.Home.HomeScreen
-import com.example.plantbuddiesapp.ui.screens.Home.PlantInformationScreen
-import com.example.plantbuddiesapp.ui.screens.MyPlants.MyPlantsScreen
-import com.example.plantbuddiesapp.ui.screens.User.UserScreen
-import com.example.plantbuddiesapp.ui.screens.Home.PlantCameraScreen
+import com.example.plantbuddiesapp.presentation.ui.screens.Home.HomeScreen
+import com.example.plantbuddiesapp.presentation.ui.screens.Home.PlantInformationScreen
+import com.example.plantbuddiesapp.presentation.ui.screens.MyPlants.MyPlantsScreen
+import com.example.plantbuddiesapp.presentation.ui.screens.User.UserScreen
+import com.example.plantbuddiesapp.presentation.ui.screens.Home.PlantCameraScreen
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 

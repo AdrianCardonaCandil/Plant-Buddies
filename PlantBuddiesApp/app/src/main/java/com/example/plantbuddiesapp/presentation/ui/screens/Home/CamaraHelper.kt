@@ -1,4 +1,4 @@
-package com.example.plantbuddiesapp.ui.screens.Home
+package com.example.plantbuddiesapp.presentation.ui.screens.Home
 
 import android.content.ContentValues
 import android.content.Context

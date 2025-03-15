@@ -1,4 +1,4 @@
-package com.example.plantbuddiesapp.ui.theme
+package com.example.plantbuddiesapp.presentation.ui.theme
 
 import android.app.Activity
 import android.os.Build

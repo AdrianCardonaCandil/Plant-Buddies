@@ -1,4 +1,4 @@
-package com.example.plantbuddiesapp.ui.screens.User
+package com.example.plantbuddiesapp.presentation.ui.screens.User
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable

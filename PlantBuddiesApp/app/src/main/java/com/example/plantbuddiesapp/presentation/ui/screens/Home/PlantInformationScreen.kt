@@ -1,4 +1,4 @@
-package com.example.plantbuddiesapp.ui.screens.Home
+package com.example.plantbuddiesapp.presentation.ui.screens.Home
 
 import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
