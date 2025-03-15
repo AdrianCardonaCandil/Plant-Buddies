@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.CameraAlt
@@ -22,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,13 +39,18 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.plantbuddiesapp.R
+import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
 
 @Composable
-fun HomeScreen(navController: NavHostController) {
+fun HomeScreen(
+    navController: NavHostController,
+    viewModel: PlantViewModel = hiltViewModel()
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -60,7 +68,6 @@ fun HomeScreen(navController: NavHostController) {
                 contentDescription = stringResource(R.string.app_name),
                 modifier = Modifier.size(200.dp)
             )
-
 
             Text(
                 text = stringResource(R.string.welcome_title),
@@ -82,10 +89,11 @@ fun HomeScreen(navController: NavHostController) {
             Spacer(modifier = Modifier.height(50.dp))
 
             var isSearchFocused by remember { mutableStateOf(false) }
+            var searchQuery by remember { mutableStateOf("") }
 
             OutlinedTextField(
-                value = "",
-                onValueChange = { },
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
                 placeholder = { Text(stringResource(R.string.search_hint), color = MaterialTheme.colorScheme.outline) },
                 leadingIcon = {
                     Icon(
@@ -115,7 +123,13 @@ fun HomeScreen(navController: NavHostController) {
                     .clip(RoundedCornerShape(28.dp))
                     .onFocusChanged { isSearchFocused = it.isFocused },
                 shape = RoundedCornerShape(28.dp),
-                singleLine = true
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = {
+                    if (searchQuery.isNotEmpty()) {
+                        viewModel.searchPlants(searchQuery, emptySet())
+                    }
+                })
             )
 
             Spacer(modifier = Modifier.height(16.dp))

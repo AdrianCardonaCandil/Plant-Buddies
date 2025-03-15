@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.plantbuddiesapp.domain.model.Plant
 import com.example.plantbuddiesapp.domain.repository.PlantRepository
+import com.example.plantbuddiesapp.presentation.ui.states.SearchState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,6 +27,12 @@ class PlantViewModel @Inject constructor(
 
     private val _savePlantState = MutableStateFlow<SavePlantState>(SavePlantState.Initial)
     val savePlantState: StateFlow<SavePlantState> = _savePlantState.asStateFlow()
+
+    private val _searchResults = MutableStateFlow<List<Plant>>(emptyList())
+    val searchResults: StateFlow<List<Plant>> = _searchResults.asStateFlow()
+
+    private val _searchState = MutableStateFlow<SearchState>(SearchState.Initial)
+    val searchState: StateFlow<SearchState> = _searchState.asStateFlow()
 
     init {
         loadUserPlants()
@@ -53,7 +60,7 @@ class PlantViewModel @Inject constructor(
             plantRepository.savePlant(plant).fold(
                 onSuccess = { savedPlant ->
                     _savePlantState.value = SavePlantState.Success(savedPlant)
-                    loadUserPlants() // Refresh plants list
+                    loadUserPlants()
                 },
                 onFailure = { error ->
                     _savePlantState.value = SavePlantState.Error(error.message ?: "Unknown error")
@@ -69,6 +76,21 @@ class PlantViewModel @Inject constructor(
             }
         }
     }
+    fun searchPlants(query: String, filters: Set<String>) {
+        viewModelScope.launch {
+            _searchState.value = SearchState.Loading
+
+            try {
+                plantRepository.searchPlants(query, filters).collectLatest { plants ->
+                    _searchResults.value = plants
+                    _searchState.value = SearchState.Success
+                }
+            } catch (e: Exception) {
+                _searchState.value = SearchState.Error(e.message ?: "Error searching plants")
+            }
+        }
+    }
+
 
     sealed class IdentificationState {
         object Initial : IdentificationState()
