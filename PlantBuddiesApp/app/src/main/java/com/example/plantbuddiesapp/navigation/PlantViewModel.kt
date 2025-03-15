@@ -2,22 +2,20 @@ package com.example.plantbuddiesapp.navigation
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
-
-data class Plant(val name: String)
+import com.example.plantbuddiesapp.ui.screens.Home.PlantInfo
 
 class PlantViewModel : ViewModel() {
+    private val _myPlants = mutableStateListOf<PlantInfo>()
+    val myPlants: List<PlantInfo> = _myPlants
 
-    private val _plants = mutableStateListOf<Plant>()
-    val plants: List<Plant> get() = _plants
-
-    fun addPlant(name: String) {
-        if (name.isNotBlank()) {
-            _plants.add(Plant(name))
+    fun addPlant(plant: PlantInfo) {
+        if (!_myPlants.contains(plant)) {
+            _myPlants.add(plant)
         }
     }
 
-    fun removePlant(plant: Plant) {
-        _plants.remove(plant)
+    fun removePlant(plant: PlantInfo) {
+        _myPlants.remove(plant)
     }
 
 }

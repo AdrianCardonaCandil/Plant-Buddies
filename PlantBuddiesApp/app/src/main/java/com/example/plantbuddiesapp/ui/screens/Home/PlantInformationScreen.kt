@@ -68,7 +68,10 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.plantbuddiesapp.navigation.PlantViewModel
+import com.example.plantbuddiesapp.navigation.Screen
 import kotlinx.coroutines.delay
+
 data class PlantInfo(
     val scientificName: String,
     val commonName: String,
@@ -76,11 +79,13 @@ data class PlantInfo(
     val waterNeeds: Float,
     val sunlightNeeds: Float,
     val careLevel: String,
-    val careTips: List<String>
+    val careTips: List<String>,
+    val imageUri: Uri? = null
 )
 
 @Composable
-fun PlantInformationScreen(navController: NavController, imageUri: Uri) {
+fun PlantInformationScreen(navController: NavController, imageUri: Uri, viewModel: PlantViewModel) {
+
     val plantInfo = remember {
         PlantInfo(
             scientificName = "Monstera Deliciosa",
@@ -95,9 +100,11 @@ fun PlantInformationScreen(navController: NavController, imageUri: Uri) {
                 "Enjoys high humidity but adapts to normal home conditions",
                 "Can be fertilized monthly during growing season",
                 "Repot every 2 years when roots become crowded"
-            )
+            ),
+            imageUri = imageUri
         )
     }
+
 
     var isPlantSaved by remember { mutableStateOf(false) }
     var careTipsVisible by remember { mutableStateOf(false) }
@@ -445,13 +452,18 @@ fun PlantInformationScreen(navController: NavController, imageUri: Uri) {
 
                     Button(
                         onClick = {
-                            isPlantSaved = true
+                            viewModel.addPlant(plantInfo)
+                            //isPlantSaved = true
+
+                            navController.navigate(Screen.MyPlants.route)
+
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
-                            text = "Add to My Plants",
+                            //text = "Add to My Plants",
+                            text = "Add plants",
                             modifier = Modifier.padding(vertical = 8.dp),
                             fontWeight = FontWeight.Bold
                         )

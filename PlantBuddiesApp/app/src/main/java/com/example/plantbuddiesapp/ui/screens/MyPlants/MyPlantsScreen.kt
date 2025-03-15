@@ -14,11 +14,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,24 +36,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.plantbuddiesapp.R
 import com.example.plantbuddiesapp.navigation.PlantViewModel
-import com.example.plantbuddiesapp.navigation.Screen
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.plantbuddiesapp.navigation.Plant
+import com.example.plantbuddiesapp.ui.screens.Home.PlantInfo
+import coil.compose.rememberAsyncImagePainter
 
 @Composable
-fun MyPlantsScreen(
-    navController: NavHostController,
-    viewModel: PlantViewModel = viewModel()
-) {
-    val plants = viewModel.plants
+fun MyPlantsScreen(navController: NavHostController, viewModel: PlantViewModel) {
+    val myPlants = viewModel.myPlants
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
     ) {
-        if (plants.isEmpty()) {
-
+        if (myPlants.isEmpty()) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -111,21 +108,15 @@ fun MyPlantsScreen(
                         fontSize = 16.sp
                     )
                 }
-
             }
-
         } else {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                plants.forEach { plant ->
-                    Text(
-                        text = plant.name,
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(8.dp)
-                    )
+                myPlants.forEach { plant ->
+                    PlantCard(plant = plant, onDelete = { viewModel.removePlant(plant) })
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -153,7 +144,7 @@ fun MyPlantsScreen(
 }
 
 @Composable
-fun PlantCard(plant: Plant) {
+fun PlantCard(plant: PlantInfo, onDelete: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -162,7 +153,41 @@ fun PlantCard(plant: Plant) {
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
-            // modifier = Modifier.background()
-        ) {  }
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(16.dp)
+        ) {
+            plant.imageUri?.let { uri ->
+                Image(
+                    painter = rememberAsyncImagePainter(model = uri),
+                    contentDescription = plant.commonName,
+                    modifier = Modifier.fillMaxWidth().height(200.dp)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+            }
+
+            Text(
+                text = plant.commonName,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            IconButton(
+                onClick = onDelete,
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete Plant",
+                    tint = MaterialTheme.colorScheme.error
+                )
+
+            }
+
+        }
     }
 }

@@ -52,7 +52,7 @@ fun AddPlantScreen(
 
             Button(
                 onClick = {
-                    viewModel.addPlant(plantName)
+                    //viewModel.addPlant(plantName)
                     navController.popBackStack()
                 },
                 modifier = Modifier
