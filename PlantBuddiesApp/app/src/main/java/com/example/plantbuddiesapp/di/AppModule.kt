@@ -1,7 +1,7 @@
 package com.example.plantbuddiesapp.di
 
+import PlantRepositoryImpl
 import android.content.Context
-import com.example.plantbuddiesapp.data.repository.PlantRepositoryImpl
 import com.example.plantbuddiesapp.data.services.PlantService
 import com.example.plantbuddiesapp.domain.repository.PlantRepository
 import dagger.Module
