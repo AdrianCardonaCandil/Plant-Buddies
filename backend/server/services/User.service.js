@@ -40,10 +40,10 @@ class UserService {
      * @throws {Error} Error al autenticar el usuario.
      */
     loginUser = (user) => {
-        this.getUser(user.uid)
+        return this.getUser(user.uid)
             .then((doc) => {
                 if (doc.exists) {
-                    return doc.data();
+                    return doc.data()
                 } else {
                     throw new Error('Usuario no encontrado');
                 }

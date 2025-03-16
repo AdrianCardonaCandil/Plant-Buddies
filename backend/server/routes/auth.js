@@ -44,13 +44,20 @@ module.exports = (UserModel) => {
     router.post('/login', tokenVerify, async (req, res) => {
         try {
             const user = new User({...req.user, ...req.body});
-            if (userModel.loginUser(user)) {
-                console.log('Usuario autenticado correctamente.');
-                return res.status(200).json({
-                    message: 'Usuario autenticado correctamente.',
-                    user: user
-                })
-            }
+            userModel.loginUser(user).then(user => {
+                if (user) {
+                    console.log('Usuario autenticado correctamente.');
+                    return res.status(200).json({
+                        message: 'Usuario autenticado correctamente.',
+                        user: user
+                    })
+                } else {
+                    console.error('Usuario no encontrado.');
+                    return res.status(404).json({
+                        message: 'Usuario no encontrado.'
+                    })
+                }
+            })
         } catch (error) {
             console.error('Error al autenticar un usuario:', error);
             return res.status(500).json({
