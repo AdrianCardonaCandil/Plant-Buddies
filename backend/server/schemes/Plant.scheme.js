@@ -13,7 +13,7 @@
  */
 
 class Plant {
-    constructor(id, scientificName, commonName, description, waterNeeds, sunlightNeeds, careLevel, careTips, imageUrl){
+    constructor({id, scientificName, commonName, description, waterNeeds, sunlightNeeds, careLevel, careTips, imageUrl}){
         this.id = id;
         this.scientificName = scientificName;
         this.commonName = commonName;

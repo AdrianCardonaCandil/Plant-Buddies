@@ -2,7 +2,7 @@
  * Middleware para verificar el token Firebase enviado desde el frontend..
  */
 
-const { auth } = require('../services/firebase.service')
+const { auth } = require('../config/firebase')
 
 /**
  * Verifica el token Firebase enviado desde el frontend.

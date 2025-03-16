@@ -8,6 +8,7 @@ const {getAuth} = require('firebase-admin/auth');
 
 try {
     const serviceAccount = require(process.env.FIREBASE_SERVICE_ACCOUNT_KEY_PATH);
+    console.log("hello")
     if (getApps().length === 0){
         initializeApp({
             credential: cert(serviceAccount)

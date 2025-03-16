@@ -1,7 +1,7 @@
 /**
  * Clase que define el esquema de usuario.
  * @typedef {Class} User
- * @property {string} id - Identificador único del usuario.
+ * @property {string} uid - Identificador único del usuario.
  * @property {string} email - Correo electrónico del usuario.
  * @property {string} name - Nombre del usuario.
  * @property {string} password - Contraseña del usuario.
@@ -12,8 +12,8 @@
  */
 
 class User {
-    constructor(id, email, name, password, country, description, image, plants){
-        this.id = id;
+    constructor({uid, email, name, password, country, description, image, plants}){
+        this.uid = uid;
         this.email = email;
         this.name = name;
         this.password = password;
