@@ -25,5 +25,6 @@
     <string name="plants_empty_title">You don\'t have any plants</string>
     <string name="plants_empty_description">Add your first plant and start caring for it.</string>
     <string name="plants_empty_button">Add plants</string>
+    <string name="add_icon_description">Add</string>
 
 </resources>

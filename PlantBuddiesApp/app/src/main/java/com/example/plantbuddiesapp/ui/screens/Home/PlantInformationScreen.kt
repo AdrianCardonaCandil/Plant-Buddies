@@ -85,7 +85,6 @@ data class PlantInfo(
 
 @Composable
 fun PlantInformationScreen(navController: NavController, imageUri: Uri, viewModel: PlantViewModel) {
-
     val plantInfo = remember {
         PlantInfo(
             scientificName = "Monstera Deliciosa",
@@ -104,7 +103,6 @@ fun PlantInformationScreen(navController: NavController, imageUri: Uri, viewMode
             imageUri = imageUri
         )
     }
-
 
     var isPlantSaved by remember { mutableStateOf(false) }
     var careTipsVisible by remember { mutableStateOf(false) }
@@ -452,18 +450,15 @@ fun PlantInformationScreen(navController: NavController, imageUri: Uri, viewMode
 
                     Button(
                         onClick = {
+                            isPlantSaved = true
                             viewModel.addPlant(plantInfo)
-                            //isPlantSaved = true
-
                             navController.navigate(Screen.MyPlants.route)
-
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
-                            //text = "Add to My Plants",
-                            text = "Add plants",
+                            text = "Add to My Plants",
                             modifier = Modifier.padding(vertical = 8.dp),
                             fontWeight = FontWeight.Bold
                         )
