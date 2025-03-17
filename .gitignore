@@ -37,3 +37,35 @@ google-services.json
 
 # Backend Trained Models
 saved_models/
+
+# Visual Studio Code
+.DS_Store
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# Dependency node directories
+node_modules/
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Credentials for Google Admin SDK
+credentials/
