@@ -23,7 +23,8 @@ require('./middlewares/cors')(app)
 
 // Rutas de autenticación
 app.use('/api/auth', require('./routes/auth')(require('./models/User.model')))
+app.use('/api/plants', require('./routes/plants')(require('./models/Plant.model')))
 
-// Inicislización del servidor
+// Inicialización del servidor
 const PORT = process.env.PORT
 app.listen(PORT, () => console.log(`Servidor iniciado en http://localhost:${PORT}`))
