@@ -37,6 +37,22 @@ class PlantService {
             throw new Error('Error al obtener las plantas.', error);
         }
     }
+
+    /**
+     * Obtiene planta según el ID de la base de datos.
+     * @function getPlantById
+     * @param {String} id - ID de la planta.
+     * @returns {Promise<DocumentSnapshot>} Promesa de la planta encontrada.
+     * @throws {Error} Error al obtener la planta.
+     */
+    getPlantById = async (id) => {
+        try {
+            const snapshot = await this.db.collection(this.collection).doc(id).get();
+            return Plant.parse(snapshot.data());
+        } catch (error) {
+            throw new Error('Error al obtener la planta.', error);
+        }
+    }
 }
 
 module.exports = PlantService;

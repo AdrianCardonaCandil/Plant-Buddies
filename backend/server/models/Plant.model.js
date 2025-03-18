@@ -22,6 +22,15 @@ class PlantModel {
      * @throws {Error} Error al obtener la planta.
      */
     getPlants = (filters) => this.service.getPlants(filters);
+
+    /**
+     * Obtiene planta según el ID de la base de datos.
+     * @function getPlantById
+     * @param {String} id - ID de la planta.
+     * @returns {Promise<DocumentSnapshot>} Promesa de la planta encontrada.
+     * @throws {Error} Error al obtener la planta.
+     */
+    getPlantById = (id) => this.service.getPlantById(id);
 }
 
 module.exports = PlantModel;

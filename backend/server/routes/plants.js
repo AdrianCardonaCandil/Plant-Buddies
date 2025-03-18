@@ -30,5 +30,24 @@ module.exports = (PlantModel) => {
        }
    })
 
+   /**
+    * Obtiene planta según el ID de la base de datos.
+    * @name api/plants/:id
+    */
+   router.get('/:id', async (req, res) => {
+       try {
+           const plant = await plantModel.getPlantById(req.params.id);
+           return res.status(200).json({
+               message: 'Planta obtenida correctamente.',
+               plant: plant
+           })
+       } catch (error) {
+           console.error('Error al obtener la planta:', error);
+           return res.status(500).json({
+               message: 'Error al obtener la planta.'
+           })
+       }
+   })
+
    return router;
 }
