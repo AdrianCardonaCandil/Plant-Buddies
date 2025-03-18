@@ -12,58 +12,58 @@ const { DocumentSnapshot } = require("firebase-admin/firestore");
  */
 
 class UserService {
-    constructor(){
+    constructor() {
         this.collection = process.env.USERS_COLLECTION;
-        this.db = db
+        this.db = db;
     }
 
     /**
      * Crea un nuevo usuario en la base de datos.
-     * @function createUser
      * @param {Object} user - Objeto de usuario a crear.
      * @returns {Promise<void>} Promesa de usuario creado.
      * @throws {Error} Error al crear el usuario.
      */
-    createUser = (user) => {
+    createUser = async (user) => {
         try {
-            return this.db.collection(this.collection).doc(user.uid).set({...user})
+            await this.db.collection(this.collection).doc(user.uid).set({...user});
         } catch (error) {
-            throw new Error('Error al crear el usuario:', error);
+            throw new Error('Error al crear el usuario', {cause: error});
         }
     }
 
     /**
      * Inicia sesión de un usuario en la aplicación.
-     * @function loginUser
-     * @param {Object} user - Objeto de usuario a autenticar.
-     * @returns {Object} Objeto de usuario autenticado
+     * @param {String} uid - Identificador del usuario a autenticar.
+     * @returns {Promise<User>} Objeto de usuario autenticado.
      * @throws {Error} Error al autenticar el usuario.
      */
-    loginUser = (user) => {
-        return this.getUser(user.uid)
-            .then((doc) => {
-                if (doc.exists) {
-                    return doc.data()
-                } else {
-                    throw new Error('Usuario no encontrado');
-                }
-            }).catch((error) => {
-                throw new Error('Error al autenticar el usuario:', error);
-            })
+    loginUser = async(uid) => {
+        try {
+            const foundUser = await this.getUser(uid);
+            if (!foundUser) {
+                throw new Error('Usuario no encontrado');
+            }
+            return foundUser;
+        } catch (error) {
+            throw new Error('Error al autenticar el usuario', {cause: error});
+        }
     }
 
     /**
      * Obtiene un usuario de la base de datos.
-     * @function getUser
      * @param {string} uid - Identificador único del usuario.
-     * @returns {Promise<DocumentSnapshot>} Promesa de usuario encontrado.
+     * @returns {Promise<User>} Promesa de usuario encontrado.
      * @throws {Error} Error al obtener el usuario.
      */
-    getUser = (uid) => {
+    getUser = async (uid) => {
         try {
-            return this.db.collection(this.collection).doc(uid).get();
+            const snapshot = await this.db.collection(this.collection).doc(uid).get();
+            if (!snapshot.exists) {
+                throw new Error('Usuario no encontrado');
+            }
+            return User.parse(snapshot.data());
         } catch (error) {
-            throw new Error('Error al obtener el usuario:', error);
+            throw new Error('Error al buscar el usuario', {cause: error});
         }
     }
 }

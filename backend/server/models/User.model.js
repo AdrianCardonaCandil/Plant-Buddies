@@ -16,27 +16,24 @@ class UserModel {
 
     /**
      * Crea un nuevo usuario en la base de datos.
-     * @function createUser
      * @param {Object} user - Objeto de usuario a crear.
-     * @returns {Promise<Void>} Promesa de usuario creado.
+     * @returns {Promise<void>} Promesa de usuario creado.
      * @throws {Error} Error al crear el usuario.
      */
     createUser = (user) => this.service.createUser(user);
 
     /**
      * Inicia sesión de un usuario en la aplicación.
-     * @function loginUser
-     * @param {Object} user - Objeto de usuario a autenticar.
-     * @returns {Object} Objeto de usuario autenticado
+     * @param {string} uid - Identificador del usuario a autenticar.
+     * @returns {Promise<User>} Objeto de usuario autenticado.
      * @throws {Error} Error al autenticar el usuario.
      */
     loginUser = (user) => this.service.loginUser(user);
 
     /**
      * Obtiene un usuario de la base de datos.
-     * @function getUser
-     * @param {string} id - Identificador único del usuario.
-     * @returns {Promise<DocumentSnapshot>} Promesa de usuario encontrado.
+     * @param {string} uid - Identificador único del usuario.
+     * @returns {Promise<User>} Promesa de usuario encontrado.
      * @throws {Error} Error al obtener el usuario.
      */
     getUser = (id) => this.service.getUser(id);

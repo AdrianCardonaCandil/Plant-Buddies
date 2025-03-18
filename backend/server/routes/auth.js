@@ -19,16 +19,16 @@ module.exports = (UserModel) => {
 
     router.post('/register', tokenVerify, async (req, res) => {
         try {
-            const user = new User({...req.user, ...req.body});
+            const user = User.parse({...req.user, ...req.body});
+            console.log(user);
             userModel.createUser(user).then(() => {
                 console.log('Usuario creado correctamente.');
                 return res.status(201).json({
-                    message: 'Usuario creado correctamente.',
-                    user: user
+                    message: 'Usuario creado correctamente.'
                 })
             })
         } catch (error) {
-            console.error('Error al crear un usuario:', error);
+            console.error('Error al crear un usuario')
             return res.status(500).json({
                 message: 'Error al crear un usuario.'
             })
@@ -43,23 +43,16 @@ module.exports = (UserModel) => {
 
     router.post('/login', tokenVerify, async (req, res) => {
         try {
-            const user = new User({...req.user, ...req.body});
-            userModel.loginUser(user).then(user => {
-                if (user) {
-                    console.log('Usuario autenticado correctamente.');
-                    return res.status(200).json({
-                        message: 'Usuario autenticado correctamente.',
-                        user: user
-                    })
-                } else {
-                    console.error('Usuario no encontrado.');
-                    return res.status(404).json({
-                        message: 'Usuario no encontrado.'
-                    })
-                }
-            })
+            const user = await userModel.loginUser(req.user.uid)
+            if (user) {
+                console.log('Usuario autenticado correctamente.')
+                return res.status(200).json({
+                    message: 'Usuario autenticado correctamente.',
+                    user: user
+                })
+            }
         } catch (error) {
-            console.error('Error al autenticar un usuario:', error);
+            console.error('Error al autenticar un usuario.')
             return res.status(500).json({
                 message: 'Error al autenticar un usuario.'
             })
