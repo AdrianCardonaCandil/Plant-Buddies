@@ -20,11 +20,12 @@
  * @property {string} harvestSeason - Temporada de cosecha de la planta.
  * @property {string} leaf - Existencia de hojas.
  * @property {string} poisonous - Planta venenosa.
+ * @property {string} image - Imagen de la planta.
  * @property {string} careGuides - Guías de cuidado de la planta.
  */
 
 class Plant {
-    constructor({id, scientificName, commonName, description, family, genus, dimensions, watering, sunlight, prunningMonth, seeds, growthRate, indoor, careLevel, flowers, fruits, harvestSeason, leaf, poisonous, careGuides}){
+    constructor({id, scientificName, commonName, description, family, genus, dimensions, watering, sunlight, prunningMonth, seeds, growthRate, indoor, careLevel, flowers, fruits, harvestSeason, leaf, poisonous, image, careGuides}){
         this.id = id;
         this.scientificName = scientificName;
         this.commonName = commonName;
@@ -44,6 +45,7 @@ class Plant {
         this.harvestSeason = harvestSeason;
         this.leaf = leaf;
         this.poisonous = poisonous;
+        this.image = image;
         this.careGuides = careGuides
     }
     static parse = plant => new Plant(plant)
