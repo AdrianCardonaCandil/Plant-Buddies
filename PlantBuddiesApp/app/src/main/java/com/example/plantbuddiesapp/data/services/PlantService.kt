@@ -6,51 +6,40 @@ import retrofit2.Response
 import retrofit2.http.*
 
 interface PlantService {
-    /**
-     * Identifica una planta a partir de una imagen
-     */
     @Multipart
     @POST("plants/identify")
     suspend fun identifyPlant(
+        @Header("Authorization") token: String,
         @Part image: MultipartBody.Part
     ): Response<PlantDto>
 
-    /**
-     * Obtiene la lista de plantas del usuario
-     */
     @GET("plants")
-    suspend fun getUserPlants(): Response<List<PlantDto>>
+    suspend fun getUserPlants(
+        @Header("Authorization") token: String
+    ): Response<List<PlantDto>>
 
-    /**
-     * Guarda una nueva planta en la cuenta del usuario
-     */
     @POST("plants")
     suspend fun savePlant(
+        @Header("Authorization") token: String,
         @Body plant: PlantDto
     ): Response<PlantDto>
 
-    /**
-     * Elimina una planta de la cuenta del usuario
-     */
     @DELETE("plants/{plantId}")
     suspend fun deletePlant(
+        @Header("Authorization") token: String,
         @Path("plantId") plantId: String
     ): Response<Unit>
 
-    /**
-     * Actualiza una planta existente
-     */
     @PUT("plants/{plantId}")
     suspend fun updatePlant(
+        @Header("Authorization") token: String,
         @Path("plantId") plantId: String,
         @Body plant: PlantDto
     ): Response<PlantDto>
 
-    /**
-     * Busca plantas según criterios específicos
-     */
     @GET("plants/search")
     suspend fun searchPlants(
+        @Header("Authorization") token: String,
         @Query("query") query: String,
         @Query("filters") filters: List<String>
     ): Response<List<PlantDto>>

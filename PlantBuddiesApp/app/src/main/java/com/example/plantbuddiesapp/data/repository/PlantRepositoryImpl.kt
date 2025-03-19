@@ -20,16 +20,19 @@ import javax.inject.Singleton
 @Singleton
 class PlantRepositoryImpl @Inject constructor(
     private val context: Context,
-    private val plantService: PlantService
+    private val plantService: PlantService,
+    private val tokenManager: TokenManager
 ) : PlantRepository {
 
     override suspend fun identifyPlant(imageUri: Uri): Result<Plant> {
         return try {
+            val token = tokenManager.getToken() ?: return Result.failure(Exception("Not authenticated"))
+
             val file = convertUriToFile(imageUri)
             val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
             val imagePart = MultipartBody.Part.createFormData("image", file.name, requestFile)
 
-            val response = plantService.identifyPlant(imagePart)
+            val response = plantService.identifyPlant(token, imagePart)
 
             if (response.isSuccessful) {
                 response.body()?.let {
@@ -37,7 +40,12 @@ class PlantRepositoryImpl @Inject constructor(
                     Result.success(plant.copy(imageUri = imageUri.toString()))
                 } ?: Result.failure(Exception("Empty response"))
             } else {
-                Result.failure(Exception("Failed to identify plant: ${response.code()}"))
+                if (response.code() == 401) {
+                    tokenManager.clearToken()
+                    Result.failure(Exception("Authentication required"))
+                } else {
+                    Result.failure(Exception("Failed to identify plant: ${response.code()}"))
+                }
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -46,16 +54,23 @@ class PlantRepositoryImpl @Inject constructor(
 
     override suspend fun savePlant(plant: Plant): Result<Plant> {
         return try {
-           val plantDto = plant.toRequestDto()
+            val token = tokenManager.getToken() ?: return Result.failure(Exception("Not authenticated"))
 
-            val response = plantService.savePlant(plantDto)
+            val plantDto = plant.toRequestDto()
+
+            val response = plantService.savePlant(token, plantDto)
 
             if (response.isSuccessful) {
                 response.body()?.let {
                     Result.success(it.toDomain())
                 } ?: Result.failure(Exception("Empty response"))
             } else {
-                Result.failure(Exception("Failed to save plant: ${response.code()}"))
+                if (response.code() == 401) {
+                    tokenManager.clearToken()
+                    Result.failure(Exception("Authentication required"))
+                } else {
+                    Result.failure(Exception("Failed to save plant: ${response.code()}"))
+                }
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -64,11 +79,20 @@ class PlantRepositoryImpl @Inject constructor(
 
     override suspend fun getUserPlants(): Flow<List<Plant>> = flow {
         try {
-            val response = plantService.getUserPlants()
+            val token = tokenManager.getToken()
+            if (token == null) {
+                emit(emptyList())
+                return@flow
+            }
+
+            val response = plantService.getUserPlants(token)
             if (response.isSuccessful) {
                 val plants = response.body()?.map { it.toDomain() } ?: emptyList()
                 emit(plants)
             } else {
+                if (response.code() == 401) {
+                    tokenManager.clearToken()
+                }
                 emit(emptyList())
             }
         } catch (e: Exception) {
@@ -78,12 +102,19 @@ class PlantRepositoryImpl @Inject constructor(
 
     override suspend fun deletePlant(plantId: String): Result<Unit> {
         return try {
-            val response = plantService.deletePlant(plantId)
+            val token = tokenManager.getToken() ?: return Result.failure(Exception("Not authenticated"))
+
+            val response = plantService.deletePlant(token, plantId)
 
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Failed to delete plant: ${response.code()}"))
+                if (response.code() == 401) {
+                    tokenManager.clearToken()
+                    Result.failure(Exception("Authentication required"))
+                } else {
+                    Result.failure(Exception("Failed to delete plant: ${response.code()}"))
+                }
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -92,18 +123,24 @@ class PlantRepositoryImpl @Inject constructor(
 
     override suspend fun updatePlant(plant: Plant): Result<Plant> {
         return try {
+            val token = tokenManager.getToken() ?: return Result.failure(Exception("Not authenticated"))
             val plantId = plant.id ?: return Result.failure(Exception("Plant ID is required for update"))
 
             val plantDto = plant.toDto()
 
-            val response = plantService.updatePlant(plantId, plantDto)
+            val response = plantService.updatePlant(token, plantId, plantDto)
 
             if (response.isSuccessful) {
                 response.body()?.let {
                     Result.success(it.toDomain())
                 } ?: Result.failure(Exception("Empty response"))
             } else {
-                Result.failure(Exception("Failed to update plant: ${response.code()}"))
+                if (response.code() == 401) {
+                    tokenManager.clearToken()
+                    Result.failure(Exception("Authentication required"))
+                } else {
+                    Result.failure(Exception("Failed to update plant: ${response.code()}"))
+                }
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -112,11 +149,20 @@ class PlantRepositoryImpl @Inject constructor(
 
     override suspend fun searchPlants(query: String, filters: Set<String>): Flow<List<Plant>> = flow {
         try {
-            val response = plantService.searchPlants(query, filters.toList())
+            val token = tokenManager.getToken()
+            if (token == null) {
+                emit(emptyList())
+                return@flow
+            }
+
+            val response = plantService.searchPlants(token, query, filters.toList())
             if (response.isSuccessful) {
                 val plants = response.body()?.map { it.toDomain() } ?: emptyList()
                 emit(plants)
             } else {
+                if (response.code() == 401) {
+                    tokenManager.clearToken()
+                }
                 emit(emptyList())
             }
         } catch (e: Exception) {

@@ -53,8 +53,9 @@ object AppModule {
     @Singleton
     fun providePlantRepository(
         @ApplicationContext context: Context,
-        plantService: PlantService
+        plantService: PlantService,
+        tokenManager: TokenManager
     ): PlantRepository {
-        return PlantRepositoryImpl(context, plantService)
+        return PlantRepositoryImpl(context, plantService, tokenManager)
     }
 }

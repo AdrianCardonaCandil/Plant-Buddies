@@ -1,6 +1,8 @@
 package com.example.plantbuddiesapp.di
 
+import com.example.plantbuddiesapp.data.services.AuthService
 import com.example.plantbuddiesapp.data.services.PlantService
+import com.example.plantbuddiesapp.data.services.UserService
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
@@ -44,5 +46,17 @@ object NetworkModule {
     @Singleton
     fun providePlantService(retrofit: Retrofit): PlantService {
         return retrofit.create(PlantService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAuthService(retrofit: Retrofit): AuthService {
+        return retrofit.create(AuthService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserService(retrofit: Retrofit): UserService {
+        return retrofit.create(UserService::class.java)
     }
 }
