@@ -37,7 +37,7 @@ module.exports = (PlantModel) => {
             console.log('Ruta de la imagen:', image)
 
             // Lanzamos el script de inferencia, monitorizando la salida
-            const python = spawn('python3', [modelDir, image])
+            const python = spawn('python3', [scriptDir, image])
             let data = ''
             python.stdout.on('data', (chunk) => {
                 data += chunk.toString()
