@@ -35,7 +35,10 @@ def load_checkpoint(path):
     path (str): path to the file where the model is going to be loaded.
     """
     
-    checkpoint = torch.load(path, map_location=torch.device('cpu'))
+    if (device == 'cuda'):
+        checkpoint = torch.load(path)
+    else:
+        checkpoint = torch.load(path, map_location=torch.device('cpu'))
     return checkpoint
 
 def load_model(model):
