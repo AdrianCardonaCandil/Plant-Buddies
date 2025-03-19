@@ -7,40 +7,30 @@ import retrofit2.http.*
 
 interface PlantService {
     @Multipart
-    @POST("plants/identify")
+    @POST("api/model")
     suspend fun identifyPlant(
-        @Header("Authorization") token: String,
         @Part image: MultipartBody.Part
     ): Response<PlantDto>
 
-    @GET("plants")
+    @GET("api/users/plantlist")
     suspend fun getUserPlants(
         @Header("Authorization") token: String
     ): Response<List<PlantDto>>
 
-    @POST("plants")
+    @POST("api/users/plantlist")
     suspend fun savePlant(
         @Header("Authorization") token: String,
         @Body plant: PlantDto
     ): Response<PlantDto>
 
-    @DELETE("plants/{plantId}")
+    @DELETE("api/users/plantlist/{plantId}")
     suspend fun deletePlant(
         @Header("Authorization") token: String,
         @Path("plantId") plantId: String
     ): Response<Unit>
 
-    @PUT("plants/{plantId}")
-    suspend fun updatePlant(
-        @Header("Authorization") token: String,
-        @Path("plantId") plantId: String,
-        @Body plant: PlantDto
-    ): Response<PlantDto>
-
-    @GET("plants/search")
+    @GET("api/plants/")
     suspend fun searchPlants(
-        @Header("Authorization") token: String,
-        @Query("query") query: String,
-        @Query("filters") filters: List<String>
+        @Body filters: Set<Any>
     ): Response<List<PlantDto>>
 }

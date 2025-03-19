@@ -52,8 +52,6 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun signUp(email: String, password: String, name: String): Result<String> {
         return try {
             val registerRequest = RegisterRequestDto(
-                email = email,
-                password = password,
                 name = name
             )
             val response = authService.register(registerRequest)

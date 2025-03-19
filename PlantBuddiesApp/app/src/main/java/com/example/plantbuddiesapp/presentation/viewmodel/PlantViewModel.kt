@@ -65,7 +65,7 @@ class PlantViewModel @Inject constructor(
                     _selectedPlant.value = plant
                 },
                 onFailure = { error ->
-                    _identificationState.value = IdentificationState.Error(error.message ?: "Unknown error")
+                    _identificationState.value = IdentificationState.Error(error.message ?: "Error desconocido")
                 }
             )
         }
@@ -122,7 +122,7 @@ class PlantViewModel @Inject constructor(
         }
     }
 
-    fun searchPlants(query: String, filters: Set<String>) {
+    fun searchPlants(query: String, filters: Set<Any>) {
         viewModelScope.launch {
             _searchState.value = SearchState.Loading
 

@@ -1,4 +1,3 @@
-
 package com.example.plantbuddiesapp.presentation.ui.screens.Home
 
 import android.Manifest
@@ -49,9 +48,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.plantbuddiesapp.R
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -61,7 +62,10 @@ import java.nio.charset.StandardCharsets
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun PlantCameraScreen(navController: NavController) {
+fun PlantCameraScreen(
+    navController: NavController,
+    viewModel: PlantViewModel = hiltViewModel()
+) {
     val context = LocalContext.current
 
     var showPermissionDialog by remember { mutableStateOf(false) }
@@ -95,11 +99,8 @@ fun PlantCameraScreen(navController: NavController) {
             CameraPreview(
                 modifier = Modifier.fillMaxSize(),
                 cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
-                imageCapture = imageCapture,
-                onUseCase = { preview ->
-                }
+                imageCapture = imageCapture
             )
-
         } else {
             Box(
                 modifier = Modifier
@@ -184,7 +185,12 @@ fun PlantCameraScreen(navController: NavController) {
                         cameraHelper.capturePhoto(
                             onImageCaptured = { uri ->
                                 photoUri = uri
+
+                                // Iniciar el análisis
                                 analysisInProgress = true
+
+                                // Usar el ViewModel para identificar la planta
+                                viewModel.identifyPlant(uri)
                             },
                             onError = { error ->
                                 isScanning = false
@@ -224,7 +230,7 @@ fun PlantCameraScreen(navController: NavController) {
                             uri.toString(),
                             StandardCharsets.UTF_8.toString()
                         )
-                        navController.navigate("plantResults/$encodedUri")
+                        navController.navigate("plant_information")
                     }
                 }
             )
