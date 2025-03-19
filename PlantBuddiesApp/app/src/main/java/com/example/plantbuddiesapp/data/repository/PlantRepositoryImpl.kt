@@ -1,8 +1,9 @@
 package com.example.plantbuddiesapp.data.repository
 import android.content.Context
 import android.net.Uri
-import com.example.plantbuddiesapp.data.dto.SavePlantRequestDto
 import com.example.plantbuddiesapp.data.mapper.toDomain
+import com.example.plantbuddiesapp.data.mapper.toDto
+import com.example.plantbuddiesapp.data.mapper.toRequestDto
 import com.example.plantbuddiesapp.data.services.PlantService
 import com.example.plantbuddiesapp.domain.model.Plant
 import com.example.plantbuddiesapp.domain.repository.PlantRepository
@@ -32,7 +33,8 @@ class PlantRepositoryImpl @Inject constructor(
 
             if (response.isSuccessful) {
                 response.body()?.let {
-                    Result.success(it.toDomain(imageUri.toString()))
+                    val plant = it.toDomain()
+                    Result.success(plant.copy(imageUri = imageUri.toString()))
                 } ?: Result.failure(Exception("Empty response"))
             } else {
                 Result.failure(Exception("Failed to identify plant: ${response.code()}"))
@@ -44,18 +46,9 @@ class PlantRepositoryImpl @Inject constructor(
 
     override suspend fun savePlant(plant: Plant): Result<Plant> {
         return try {
-            val plantRequest = SavePlantRequestDto(
-                scientificName = plant.scientificName,
-                commonName = plant.commonName,
-                imageUrl = plant.imageUri ?: "",
-                description = plant.description,
-                careLevel = plant.careLevel,
-                waterNeeds = plant.waterNeeds,
-                sunlightNeeds = plant.sunlightNeeds,
-                careTips = plant.careTips
-            )
+           val plantDto = plant.toRequestDto()
 
-            val response = plantService.savePlant(plantRequest)
+            val response = plantService.savePlant(plantDto)
 
             if (response.isSuccessful) {
                 response.body()?.let {
@@ -99,18 +92,11 @@ class PlantRepositoryImpl @Inject constructor(
 
     override suspend fun updatePlant(plant: Plant): Result<Plant> {
         return try {
-            val plantRequest = SavePlantRequestDto(
-                scientificName = plant.scientificName,
-                commonName = plant.commonName,
-                imageUrl = plant.imageUri ?: "",
-                description = plant.description,
-                careLevel = plant.careLevel,
-                waterNeeds = plant.waterNeeds,
-                sunlightNeeds = plant.sunlightNeeds,
-                careTips = plant.careTips
-            )
+            val plantId = plant.id ?: return Result.failure(Exception("Plant ID is required for update"))
 
-            val response = plantService.updatePlant(plant.id!!, plantRequest)
+            val plantDto = plant.toDto()
+
+            val response = plantService.updatePlant(plantId, plantDto)
 
             if (response.isSuccessful) {
                 response.body()?.let {

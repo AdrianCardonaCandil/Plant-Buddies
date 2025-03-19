@@ -1,10 +1,10 @@
-package com.example.plantbuddiesapp.domain.model
+package com.example.plantbuddiesapp.data.dto
 
-data class Plant(
+data class PlantDto(
     val scientificName: String,
     val commonName: String,
     val id: String? = null,
-    val imageUri: String? = null,
+    val imageUrl: String? = null,
     val description: String? = null,
     val family: String? = null,
     val genus: String? = null,
@@ -21,5 +21,6 @@ data class Plant(
     val prunningMonth: String? = null,
     val harvestSeason: String? = null,
     val poisonous: Boolean? = null,
-    val careGuides: List<String> = emptyList()
+    val careGuides: List<String> = emptyList(),
+    val confidence: Float? = null
 )
