@@ -21,9 +21,10 @@ require('./middlewares/static')(app)
 require('./middlewares/cors')(app)
 
 
-// Rutas de autenticación
+// Rutas de la aplicación
 app.use('/api/auth', require('./routes/auth')(require('./models/User.model')))
 app.use('/api/plants', require('./routes/plants')(require('./models/Plant.model')))
+app.use('/api/model', require('./routes/model')(require('./models/Plant.model')))
 
 // Inicialización del servidor
 const PORT = process.env.PORT
