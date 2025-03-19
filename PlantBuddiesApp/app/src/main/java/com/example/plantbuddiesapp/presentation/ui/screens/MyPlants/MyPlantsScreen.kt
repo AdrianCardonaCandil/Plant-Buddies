@@ -15,18 +15,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -49,81 +44,112 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.plantbuddiesapp.R
-import com.example.plantbuddiesapp.navigation.PlantViewModel
-import com.example.plantbuddiesapp.ui.screens.Home.PlantInfo
+import com.example.plantbuddiesapp.domain.model.Plant
+import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
 import coil.compose.rememberAsyncImagePainter
 
 @Composable
-fun MyPlantsScreen(navController: NavHostController, viewModel: PlantViewModel) {
-    val myPlants = viewModel.myPlants
+fun MyPlantsScreen(
+    navController: NavHostController,
+    viewModel: PlantViewModel = hiltViewModel()
+) {
+    // We're using the ViewModel's myPlants list which is updated in the ViewModel
+    val plants = viewModel.myPlants
 
     Box(
-        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
     ) {
-        if (myPlants.isEmpty()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Spacer(modifier = Modifier.height(50.dp))
-
-                Image(
-                    painter = painterResource(id = R.drawable.plants_empty_photo),
-                    contentDescription = stringResource(R.string.plants_empty_description),
-                    modifier = Modifier.size(200.dp)
-                )
-
-                Spacer(modifier = Modifier.height(30.dp))
-
-                Text(
-                    text = stringResource(R.string.plants_empty_title),
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = stringResource(R.string.plants_empty_description),
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    lineHeight = 22.sp
-                )
-
-                Spacer(modifier = Modifier.height(50.dp))
-            }
+        if (plants.isEmpty()) {
+            EmptyPlantsView()
         } else {
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    myPlants.forEach { plant ->
-                        PlantCard(
-                            plant = plant,
-                            onDelete = { viewModel.removePlant(plant) },
-                            onClick = {
-                                viewModel.selectPlant(plant)
-                                navController.navigate("plant_information")
-                            }
-                        )
-                    }
-                }
+            PlantsList(
+                plants = plants,
+                onPlantClick = {
+                    viewModel.selectPlant(it)
+                    navController.navigate("plant_information")
+                },
+                onDeletePlant = { viewModel.removePlant(it) },
+                viewModel = viewModel
+            )
+        }
+    }
+}
 
-                Spacer(modifier = Modifier.height(80.dp))
+@Composable
+fun EmptyPlantsView() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Spacer(modifier = Modifier.height(50.dp))
+
+        // Use a placeholder image resource that should exist in your project
+        Image(
+            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+            contentDescription = stringResource(R.string.app_name),
+            modifier = Modifier.size(200.dp)
+        )
+
+        Spacer(modifier = Modifier.height(30.dp))
+
+        Text(
+            text = "No Plants Yet",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Add your first plant by identifying one with the camera!",
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            lineHeight = 22.sp
+        )
+
+        Spacer(modifier = Modifier.height(50.dp))
+    }
+}
+
+@Composable
+fun PlantsList(
+    plants: List<Plant>,
+    onPlantClick: (Plant) -> Unit,
+    onDeletePlant: (Plant) -> Unit,
+    viewModel: PlantViewModel
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            plants.forEach { plant ->
+                PlantCard(
+                    plant = plant,
+                    onDelete = { onDeletePlant(plant) },
+                    onClick = { onPlantClick(plant) },
+                    viewModel = viewModel
+                )
             }
+
+            // Add some space at the bottom for better scrolling experience
+            Spacer(modifier = Modifier.height(80.dp))
         }
     }
 }
@@ -147,9 +173,13 @@ fun Chip(label: String, modifier: Modifier = Modifier) {
     }
 }
 
-
 @Composable
-fun PlantCard(plant: PlantInfo, onDelete: () -> Unit, onClick: () -> Unit) {
+fun PlantCard(
+    plant: Plant,
+    onDelete: () -> Unit,
+    onClick: () -> Unit,
+    viewModel: PlantViewModel
+) {
     var visible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { visible = true }
@@ -158,6 +188,10 @@ fun PlantCard(plant: PlantInfo, onDelete: () -> Unit, onClick: () -> Unit) {
         targetValue = if (visible) 1f else 0.8f,
         animationSpec = tween(durationMillis = 500)
     )
+
+    // Get UI-specific properties from the ViewModel
+    val waterNeeds = viewModel.getWaterNeeds(plant.id)
+    val sunlightNeeds = viewModel.getSunlightNeeds(plant.id)
 
     Card(
         modifier = Modifier
@@ -193,17 +227,17 @@ fun PlantCard(plant: PlantInfo, onDelete: () -> Unit, onClick: () -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Chip(
-                    label = "Care: ${plant.careLevel}",
+                    label = "Care: ${plant.careLevel ?: "Medium"}",
                     modifier = Modifier.weight(1f)
                 )
 
                 Chip(
-                    label = "Water: ${plant.waterNeeds}L",
+                    label = "Water: ${(waterNeeds * 10).toInt()}L",
                     modifier = Modifier.weight(1f)
                 )
 
                 Chip(
-                    label = "Sunlight: ${plant.sunlightNeeds}hrs",
+                    label = "Sun: ${(sunlightNeeds * 10).toInt()}hrs",
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -222,9 +256,10 @@ fun PlantCard(plant: PlantInfo, onDelete: () -> Unit, onClick: () -> Unit) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = plant.description,
+                text = plant.description ?: "No description available",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 3
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -241,9 +276,7 @@ fun PlantCard(plant: PlantInfo, onDelete: () -> Unit, onClick: () -> Unit) {
                     contentDescription = "Delete Plant",
                     tint = MaterialTheme.colorScheme.error
                 )
-
             }
-
         }
     }
 }

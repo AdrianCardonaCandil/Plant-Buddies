@@ -16,27 +16,27 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.plantbuddiesapp.presentation.ui.screens.Home.HomeScreen
-import com.example.plantbuddiesapp.presentation.ui.screens.Home.PlantInformationScreen
+import com.example.plantbuddiesapp.presentation.ui.screens.Common.PlantInformationScreen
 import com.example.plantbuddiesapp.presentation.ui.screens.MyPlants.MyPlantsScreen
 import com.example.plantbuddiesapp.presentation.ui.screens.User.UserScreen
 import com.example.plantbuddiesapp.presentation.ui.screens.Home.PlantCameraScreen
+import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.plantbuddiesapp.presentation.ui.screens.Common.BottomNavigationBar
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.plantbuddiesapp.ui.screens.MyPlants.PlantInformationViewScreen
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-
-    val viewModel: PlantViewModel = viewModel()
+    val viewModel: PlantViewModel = hiltViewModel()
 
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomBar = when (currentRoute) {
         Screen.PlantCamera.route,
-        "plantResults/{encodedUri}" -> false
-
+        "plantResults/{encodedUri}",
+        "plant_information" -> false
         else -> true
     }
 
@@ -48,10 +48,23 @@ fun AppNavigation() {
                     .statusBarsPadding()
             ) {
                 NavHost(navController = navController, startDestination = Screen.Home.route) {
-                    composable(Screen.Home.route) { HomeScreen(navController) }
-                    composable(Screen.MyPlants.route) { MyPlantsScreen(navController, viewModel) }
-                    composable(Screen.User.route) { UserScreen(navController) }
-                    composable(Screen.PlantCamera.route) { PlantCameraScreen(navController) }
+                    composable(Screen.Home.route) {
+                        HomeScreen(navController, viewModel)
+                    }
+
+                    composable(Screen.MyPlants.route) {
+                        MyPlantsScreen(navController, viewModel)
+                    }
+
+                    composable(Screen.User.route) {
+                        UserScreen(navController)
+                    }
+
+                    composable(Screen.PlantCamera.route) {
+
+                        PlantCameraScreen(navController)
+                    }
+
                     composable(
                         route = "plantResults/{encodedUri}",
                         arguments = listOf(
@@ -60,22 +73,21 @@ fun AppNavigation() {
                             }
                         )
                     ) { backStackEntry ->
-
                         val encodedUri = backStackEntry.arguments?.getString("encodedUri") ?: ""
-                        val decodedUri = try {
-                            Uri.parse(URLDecoder.decode(encodedUri, StandardCharsets.UTF_8.toString()))
+                        try {
+                            val decodedUriString = URLDecoder.decode(encodedUri, StandardCharsets.UTF_8.toString())
+                            val uri = Uri.parse(decodedUriString)
+                            viewModel.identifyPlant(uri)
                         } catch (e: Exception) {
-                            Uri.EMPTY
+                            // Handle error
                         }
-                        // URLDecoder.decode(encodedUri, StandardCharsets.UTF_8.toString())
-                        // PlantInformationScreen(navController, Uri.parse(decodedUri), viewModel)
-                        PlantInformationScreen(navController, decodedUri, viewModel)
+
+                        PlantInformationScreen(navController, viewModel)
                     }
 
                     composable("plant_information") {
-                        PlantInformationViewScreen(navController, viewModel)
+                        PlantInformationScreen(navController, viewModel)
                     }
-
                 }
             }
             if (showBottomBar) {
@@ -83,5 +95,4 @@ fun AppNavigation() {
             }
         }
     }
-
 }

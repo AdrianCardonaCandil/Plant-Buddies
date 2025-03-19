@@ -1,4 +1,4 @@
-package com.example.plantbuddiesapp.ui.screens.MyPlants
+package com.example.plantbuddiesapp.presentation.ui.screens.Common
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
@@ -29,11 +29,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
@@ -46,6 +49,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -63,13 +68,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
-import com.example.plantbuddiesapp.navigation.PlantViewModel
+import com.example.plantbuddiesapp.domain.model.Plant
+import com.example.plantbuddiesapp.navigation.Screen
+import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
 import kotlinx.coroutines.delay
 
 @Composable
-fun PlantInformationViewScreen(navController: NavHostController, viewModel: PlantViewModel) {
-    val selectedPlant = viewModel.selectedPlant.value
-    if (selectedPlant == null) { return }
+fun PlantInformationScreen(navController: NavHostController, viewModel: PlantViewModel) {
+    val selectedPlant by viewModel.selectedPlant.collectAsState()
+
+    if (selectedPlant == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("No plant selected")
+        }
+        return
+    }
 
     var careTipsVisible by remember { mutableStateOf(false) }
     var animationPlayed by remember { mutableStateOf(false) }
@@ -89,10 +102,18 @@ fun PlantInformationViewScreen(navController: NavHostController, viewModel: Plan
         label = "sun"
     )
 
-    LaunchedEffect(Unit) {
+    val userPlants by viewModel.userPlants.collectAsState()
+    val isPlantInCollection = remember(selectedPlant, userPlants) {
+        derivedStateOf {
+            selectedPlant?.id != null && userPlants.any { it.id == selectedPlant!!.id }
+        }
+    }.value
+
+
+    LaunchedEffect(selectedPlant) {
         delay(300)
-        waterProgress = selectedPlant.waterNeeds
-        sunlightProgress = selectedPlant.sunlightNeeds
+        waterProgress = viewModel.getWaterNeeds(selectedPlant?.id)
+        sunlightProgress = viewModel.getSunlightNeeds(selectedPlant?.id)
         delay(700)
         animationPlayed = true
     }
@@ -115,11 +136,11 @@ fun PlantInformationViewScreen(navController: NavHostController, viewModel: Plan
                 }
 
                 Text(
-                    text = selectedPlant.commonName,
+                    text = selectedPlant?.commonName ?: "",
                     style = MaterialTheme.typography.titleMedium
                 )
 
-                IconButton(onClick = { /* Compartir */ }) {
+                IconButton(onClick = { /* Share functionality */ }) {
                     Icon(
                         imageVector = Icons.Default.Share,
                         contentDescription = "Share"
@@ -150,10 +171,10 @@ fun PlantInformationViewScreen(navController: NavHostController, viewModel: Plan
                         )
                 )
 
-                selectedPlant.imageUri?.let { uri ->
+                selectedPlant?.imageUri?.let { uri ->
                     Image(
                         painter = rememberAsyncImagePainter(model = uri),
-                        contentDescription = "Captured Plant",
+                        contentDescription = "Plant Image",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(220.dp)
@@ -180,14 +201,14 @@ fun PlantInformationViewScreen(navController: NavHostController, viewModel: Plan
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = selectedPlant.commonName,
+                        text = selectedPlant?.commonName ?: "",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
                     )
 
                     Text(
-                        text = selectedPlant.scientificName,
+                        text = selectedPlant?.scientificName ?: "",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Medium,
@@ -215,7 +236,7 @@ fun PlantInformationViewScreen(navController: NavHostController, viewModel: Plan
                             Spacer(modifier = Modifier.height(8.dp))
 
                             Text(
-                                text = selectedPlant.description,
+                                text = selectedPlant?.description ?: "No description available",
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
@@ -270,7 +291,7 @@ fun PlantInformationViewScreen(navController: NavHostController, viewModel: Plan
                                 }
 
                                 Text(
-                                    text = "Medium",
+                                    text = selectedPlant?.watering ?: "Medium",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -310,7 +331,7 @@ fun PlantInformationViewScreen(navController: NavHostController, viewModel: Plan
                                 }
 
                                 Text(
-                                    text = "Bright indirect",
+                                    text = selectedPlant?.sunlight ?: "Bright indirect",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -330,7 +351,7 @@ fun PlantInformationViewScreen(navController: NavHostController, viewModel: Plan
                                 )
 
                                 Text(
-                                    text = "Care level: ${selectedPlant.careLevel}",
+                                    text = "Care level: ${selectedPlant?.careLevel ?: "Medium"}",
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Medium,
                                     modifier = Modifier.padding(start = 12.dp)
@@ -376,28 +397,67 @@ fun PlantInformationViewScreen(navController: NavHostController, viewModel: Plan
                                 Column(
                                     modifier = Modifier.padding(top = 16.dp)
                                 ) {
-                                    selectedPlant.careTips.forEachIndexed { index, tip ->
-                                        if (index > 0) {
-                                            Divider(
-                                                modifier = Modifier.padding(vertical = 8.dp),
-                                                color = MaterialTheme.colorScheme.outlineVariant
-                                            )
-                                        }
+                                    selectedPlant?.careGuides?.takeIf { it.isNotEmpty() }
+                                        ?.forEachIndexed { index, tip ->
+                                            if (index > 0) {
+                                                Divider(
+                                                    modifier = Modifier.padding(vertical = 8.dp),
+                                                    color = MaterialTheme.colorScheme.outlineVariant
+                                                )
+                                            }
 
-                                        Text(
-                                            text = "• $tip",
-                                            style = MaterialTheme.typography.bodyMedium
-                                        )
-                                    }
+                                            Text(
+                                                text = "• $tip",
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                        } ?: Text(
+                                        text = "No care tips available for this plant.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
                             }
                         }
                     }
                     Spacer(modifier = Modifier.height(40.dp))
+                    Button(
+                        onClick = {
+                            selectedPlant?.let { plant ->
+                                if (!isPlantInCollection) {
+                                    viewModel.savePlant(plant)
+                                }
+                                navController.navigate(Screen.MyPlants.route)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isPlantInCollection)
+                                MaterialTheme.colorScheme.secondary
+                            else
+                                MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = if (isPlantInCollection)
+                                Icons.Default.Favorite
+                            else
+                                Icons.Default.FavoriteBorder,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        Text(
+                            text = if (isPlantInCollection)
+                                "View in My Plants"
+                            else
+                                "Add to My Plants",
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
                 }
             }
         }
     }
 }
-
-
