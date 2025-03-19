@@ -1,6 +1,5 @@
-package com.example.plantbuddiesapp.presentation.ui.screens.Home
+package com.example.plantbuddiesapp.ui.screens.MyPlants
 
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -9,6 +8,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,8 +29,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.WaterDrop
@@ -40,7 +38,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -60,51 +57,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import androidx.navigation.NavController
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
+import androidx.navigation.NavHostController
+import coil.compose.rememberAsyncImagePainter
 import com.example.plantbuddiesapp.navigation.PlantViewModel
-import com.example.plantbuddiesapp.navigation.Screen
 import kotlinx.coroutines.delay
 
-data class PlantInfo(
-    val scientificName: String,
-    val commonName: String,
-    val description: String,
-    val waterNeeds: Float,
-    val sunlightNeeds: Float,
-    val careLevel: String,
-    val careTips: List<String>,
-    val imageUri: Uri? = null
-)
-
 @Composable
-fun PlantInformationScreen(navController: NavController, imageUri: Uri, viewModel: PlantViewModel) {
-    val plantInfo = remember {
-        PlantInfo(
-            scientificName = "Monstera Deliciosa",
-            commonName = "Swiss Cheese Plant",
-            description = "The Monstera deliciosa is a species of flowering plant native to tropical forests of southern Mexico, south to Panama. It has been introduced to many tropical areas, and has become a mildly invasive species in Hawaii, Seychelles, Ascension Island and the Society Islands.",
-            waterNeeds = 0.6f,
-            sunlightNeeds = 0.7f,
-            careLevel = "Intermediate",
-            careTips = listOf(
-                "Water when the top 2-3 inches of soil feels dry",
-                "Prefers bright, indirect light",
-                "Enjoys high humidity but adapts to normal home conditions",
-                "Can be fertilized monthly during growing season",
-                "Repot every 2 years when roots become crowded"
-            ),
-            imageUri = imageUri
-        )
-    }
+fun PlantInformationViewScreen(navController: NavHostController, viewModel: PlantViewModel) {
+    val selectedPlant = viewModel.selectedPlant.value
+    if (selectedPlant == null) { return }
 
-    var isPlantSaved by remember { mutableStateOf(false) }
     var careTipsVisible by remember { mutableStateOf(false) }
     var animationPlayed by remember { mutableStateOf(false) }
 
@@ -125,8 +91,8 @@ fun PlantInformationScreen(navController: NavController, imageUri: Uri, viewMode
 
     LaunchedEffect(Unit) {
         delay(300)
-        waterProgress = plantInfo.waterNeeds
-        sunlightProgress = plantInfo.sunlightNeeds
+        waterProgress = selectedPlant.waterNeeds
+        sunlightProgress = selectedPlant.sunlightNeeds
         delay(700)
         animationPlayed = true
     }
@@ -149,7 +115,7 @@ fun PlantInformationScreen(navController: NavController, imageUri: Uri, viewMode
                 }
 
                 Text(
-                    text = "Plant Identification",
+                    text = selectedPlant.commonName,
                     style = MaterialTheme.typography.titleMedium
                 )
 
@@ -161,21 +127,6 @@ fun PlantInformationScreen(navController: NavController, imageUri: Uri, viewMode
                 }
             }
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { isPlantSaved = !isPlantSaved },
-                containerColor = if (isPlantSaved) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.surface
-            ) {
-                Icon(
-                    imageVector = if (isPlantSaved) Icons.Default.Favorite
-                    else Icons.Default.FavoriteBorder,
-                    contentDescription = "Save Plant",
-                    tint = if (isPlantSaved) Color.White
-                    else MaterialTheme.colorScheme.primary
-                )
-            }
-        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -199,26 +150,23 @@ fun PlantInformationScreen(navController: NavController, imageUri: Uri, viewMode
                         )
                 )
 
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(imageUri)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Captured Plant",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(220.dp)
-                        .clip(CircleShape)
-                        .border(
-                            BorderStroke(4.dp, MaterialTheme.colorScheme.background),
-                            CircleShape
-                        )
-                        .align(Alignment.Center)
-                        .zIndex(1f)
-                        .graphicsLayer {
-                            translationY = 20f
-                        }
-                )
+                selectedPlant.imageUri?.let { uri ->
+                    Image(
+                        painter = rememberAsyncImagePainter(model = uri),
+                        contentDescription = "Captured Plant",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(220.dp)
+                            .clip(CircleShape)
+                            .border(
+                                BorderStroke(4.dp, MaterialTheme.colorScheme.background),
+                                CircleShape
+                            )
+                            .align(Alignment.Center)
+                            .zIndex(1f)
+                            .graphicsLayer { translationY = 20f }
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -232,14 +180,14 @@ fun PlantInformationScreen(navController: NavController, imageUri: Uri, viewMode
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = plantInfo.commonName,
+                        text = selectedPlant.commonName,
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
                     )
 
                     Text(
-                        text = plantInfo.scientificName,
+                        text = selectedPlant.scientificName,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Medium,
@@ -267,7 +215,7 @@ fun PlantInformationScreen(navController: NavController, imageUri: Uri, viewMode
                             Spacer(modifier = Modifier.height(8.dp))
 
                             Text(
-                                text = plantInfo.description,
+                                text = selectedPlant.description,
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
@@ -382,7 +330,7 @@ fun PlantInformationScreen(navController: NavController, imageUri: Uri, viewMode
                                 )
 
                                 Text(
-                                    text = "Care level: ${plantInfo.careLevel}",
+                                    text = "Care level: ${selectedPlant.careLevel}",
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Medium,
                                     modifier = Modifier.padding(start = 12.dp)
@@ -428,7 +376,7 @@ fun PlantInformationScreen(navController: NavController, imageUri: Uri, viewMode
                                 Column(
                                     modifier = Modifier.padding(top = 16.dp)
                                 ) {
-                                    plantInfo.careTips.forEachIndexed { index, tip ->
+                                    selectedPlant.careTips.forEachIndexed { index, tip ->
                                         if (index > 0) {
                                             Divider(
                                                 modifier = Modifier.padding(vertical = 8.dp),
@@ -445,28 +393,11 @@ fun PlantInformationScreen(navController: NavController, imageUri: Uri, viewMode
                             }
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Button(
-                        onClick = {
-                            isPlantSaved = true
-                            viewModel.addPlant(plantInfo)
-                            navController.navigate(Screen.MyPlants.route)
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(
-                            text = "Add to My Plants",
-                            modifier = Modifier.padding(vertical = 8.dp),
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-
                     Spacer(modifier = Modifier.height(40.dp))
                 }
             }
         }
     }
 }
+
+

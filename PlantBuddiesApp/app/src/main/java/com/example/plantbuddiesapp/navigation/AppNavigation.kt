@@ -22,12 +22,16 @@ import com.example.plantbuddiesapp.presentation.ui.screens.User.UserScreen
 import com.example.plantbuddiesapp.presentation.ui.screens.Home.PlantCameraScreen
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
-
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.plantbuddiesapp.ui.screens.MyPlants.PlantInformationViewScreen
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
+
+    val viewModel: PlantViewModel = viewModel()
+
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomBar = when (currentRoute) {
         Screen.PlantCamera.route,
@@ -45,11 +49,9 @@ fun AppNavigation() {
             ) {
                 NavHost(navController = navController, startDestination = Screen.Home.route) {
                     composable(Screen.Home.route) { HomeScreen(navController) }
-                    composable(Screen.MyPlants.route) { MyPlantsScreen(navController) }
+                    composable(Screen.MyPlants.route) { MyPlantsScreen(navController, viewModel) }
                     composable(Screen.User.route) { UserScreen(navController) }
-                    composable(Screen.PlantCamera.route) {
-                        PlantCameraScreen(navController)
-                    }
+                    composable(Screen.PlantCamera.route) { PlantCameraScreen(navController) }
                     composable(
                         route = "plantResults/{encodedUri}",
                         arguments = listOf(
@@ -60,10 +62,20 @@ fun AppNavigation() {
                     ) { backStackEntry ->
 
                         val encodedUri = backStackEntry.arguments?.getString("encodedUri") ?: ""
-                        val decodedUri =
-                            URLDecoder.decode(encodedUri, StandardCharsets.UTF_8.toString())
-                        PlantInformationScreen(navController, Uri.parse(decodedUri))
+                        val decodedUri = try {
+                            Uri.parse(URLDecoder.decode(encodedUri, StandardCharsets.UTF_8.toString()))
+                        } catch (e: Exception) {
+                            Uri.EMPTY
+                        }
+                        // URLDecoder.decode(encodedUri, StandardCharsets.UTF_8.toString())
+                        // PlantInformationScreen(navController, Uri.parse(decodedUri), viewModel)
+                        PlantInformationScreen(navController, decodedUri, viewModel)
                     }
+
+                    composable("plant_information") {
+                        PlantInformationViewScreen(navController, viewModel)
+                    }
+
                 }
             }
             if (showBottomBar) {
