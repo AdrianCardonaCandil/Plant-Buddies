@@ -10,6 +10,7 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const upload = multer({ dest: 'uploads/' });
+const PlantConversion = require('../schemes/PlantConversion.scheme');
 
 module.exports = (PlantModel) => {
 
@@ -51,8 +52,8 @@ module.exports = (PlantModel) => {
                         message: 'Error al inferir la planta.'
                     })
                 }
-
-                const plant = await plantModel.getPlant(JSON.parse(data).class)
+                
+                const plant = await plantModel.getPlant(PlantConversion[JSON.parse(data).class])
                 if (plant) {
                     console.log('Planta inferida correctamente.')
                     return res.status(200).json({
