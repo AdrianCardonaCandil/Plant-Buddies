@@ -52,7 +52,7 @@ module.exports = (PlantModel) => {
                     })
                 }
 
-                const plant = await plantModel.getPlant(data.trim())
+                const plant = await plantModel.getPlant(JSON.parse(data).class)
                 if (plant) {
                     console.log('Planta inferida correctamente.')
                     return res.status(200).json({
