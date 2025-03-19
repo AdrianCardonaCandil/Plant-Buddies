@@ -17,7 +17,7 @@ from PIL import Image
 from model import ResNet34
 
 # Seccion de hiperparámetros
-CHECKPOINT_PATH = './saved_models/plantnet_300k_resnet34_checkpoint.pth' # Ruta del archivo de checkpoint
+CHECKPOINT_PATH = '/Users/adriancardona/ULPGC/PDIGS/Plant-Buddies/backend/model/saved_models/plantnet_300k_resnet34_checkpoint.pth' # Ruta del archivo de checkpoint
 IMAGE_SIZE = 224                                                         # Tamaño de la imagen de entrada (224x224)
 NORMALIZE_MEAN = [0.4399, 0.4692, 0.3228]                                # Media de los valores de los canales RGB en el dataset de entrenamiento
 NORMALIZE_STD = [0.2337, 0.2185, 0.2297]                                 # Desviación estándar de los valores de los canales RGB en el dataset de entrenamiento
@@ -35,7 +35,7 @@ def load_checkpoint(path):
     path (str): path to the file where the model is going to be loaded.
     """
     
-    checkpoint = torch.load(path)
+    checkpoint = torch.load(path, map_location=torch.device('cpu'))
     return checkpoint
 
 def load_model(model):
