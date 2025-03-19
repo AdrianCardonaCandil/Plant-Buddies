@@ -22,6 +22,7 @@ module.exports = (PlantModel) => {
      */
 
     const plantModel = new PlantModel();
+    const interpreterDir = path.join(__dirname, '../../model/.venv/bin/python3')
     const scriptDir = path.join(__dirname, '../../model/main.py');
 
     router.post('/', upload.single('image'), async (req, res) => {
@@ -37,7 +38,7 @@ module.exports = (PlantModel) => {
             console.log('Ruta de la imagen:', image)
 
             // Lanzamos el script de inferencia, monitorizando la salida
-            const python = spawn('python3', [scriptDir, image])
+            const python = spawn(interpreterDir, [scriptDir, image])
             let data = ''
             python.stdout.on('data', (chunk) => {
                 data += chunk.toString()
@@ -52,8 +53,7 @@ module.exports = (PlantModel) => {
                         message: 'Error al inferir la planta.'
                     })
                 }
-                
-                const plant = await plantModel.getPlant(PlantConversion[JSON.parse(data).class])
+                const plant = await plantModel.getPlantById(PlantConversion[JSON.parse(data).class])
                 if (plant) {
                     console.log('Planta inferida correctamente.')
                     return res.status(200).json({
