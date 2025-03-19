@@ -22,7 +22,7 @@ module.exports = (PlantModel) => {
      */
 
     const plantModel = new PlantModel();
-    const modelDir = path.join(__dirname, '../../model/model.py');
+    const scriptDir = path.join(__dirname, '../../model/main.py');
 
     router.post('/', upload.single('image'), async (req, res) => {
         try {
