@@ -46,6 +46,7 @@ module.exports = (PlantModel) => {
 
             // Al finalizar, eliminamos la imagen y devolvemos la planta inferida
             python.on('close', async (code) => {
+                console.log('Código de salida:', code)
                 fs.unlinkSync(image)
                 if (code !== 0) {
                     console.error('Error al inferir la planta.')

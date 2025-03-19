@@ -17,10 +17,10 @@ from PIL import Image
 from model import ResNet34
 
 # Seccion de hiperparámetros
-CHECKPOINT_PATH = '/Users/adriancardona/ULPGC/PDIGS/Plant-Buddies/backend/model/saved_models/plantnet_300k_resnet34_checkpoint.pth' # Ruta del archivo de checkpoint
-IMAGE_SIZE = 224                                                         # Tamaño de la imagen de entrada (224x224)
-NORMALIZE_MEAN = [0.4399, 0.4692, 0.3228]                                # Media de los valores de los canales RGB en el dataset de entrenamiento
-NORMALIZE_STD = [0.2337, 0.2185, 0.2297]                                 # Desviación estándar de los valores de los canales RGB en el dataset de entrenamiento
+CHECKPOINT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'saved_models', 'plantnet_300k_resnet34_checkpoint.pth') # Ruta del archivo de pesos
+IMAGE_SIZE = 224                                                                                                                    # Tamaño de la imagen de entrada (224x224)
+NORMALIZE_MEAN = [0.4399, 0.4692, 0.3228]                                                                                           # Media de los valores de los canales RGB en el dataset de entrenamiento
+NORMALIZE_STD = [0.2337, 0.2185, 0.2297]                                                                                            # Desviación estándar de los valores de los canales RGB en el dataset de entrenamiento
 
 # Configuración del entorno de ejecución
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
