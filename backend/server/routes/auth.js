@@ -17,38 +17,37 @@ module.exports = (UserModel) => {
 
     const userModel = new UserModel();
 
-    router.post('/register', tokenVerify, async (req, res) => {
+    router.post('/register', async (req, res) => {
         try {
-            const user = User.parse({...req.user, ...req.body});
-            console.log(user);
-            userModel.createUser(user).then(() => {
-                console.log('Usuario creado correctamente.');
-                return res.status(201).json({
-                    message: 'Usuario creado correctamente.'
+            const token = await userModel.createUser(req.body)
+            if (token) {
+                console.log('Usuario registrado correctamente.')
+                return res.status(200).json({
+                    message: 'Usuario registrado correctamente.',
+                    token: token
                 })
-            })
+            }
         } catch (error) {
-            console.error('Error al crear un usuario')
+            console.error('Error al registrar un usuario.')
             return res.status(500).json({
-                message: 'Error al crear un usuario.'
+                message: 'Error al registrar un usuario.'
             })
         }
     })
 
     /** 
-     * Inicia sesión de un usuario en la aplicación. Unicamente verifica
-     * la existencia del usuario y la validez del token de usuario.
+     * Inicia sesión de un usuario en la aplicación.
      * @name api/auth/login
     */
 
-    router.post('/login', tokenVerify, async (req, res) => {
+    router.post('/login', async (req, res) => {
         try {
-            const user = await userModel.loginUser(req.user.uid)
-            if (user) {
+            const token = await userModel.loginUser(req.body)
+            if (token) {
                 console.log('Usuario autenticado correctamente.')
                 return res.status(200).json({
                     message: 'Usuario autenticado correctamente.',
-                    user: user
+                    token: token
                 })
             }
         } catch (error) {

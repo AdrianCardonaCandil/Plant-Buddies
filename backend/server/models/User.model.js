@@ -15,20 +15,24 @@ class UserModel {
     }
 
     /**
-     * Crea un nuevo usuario en la base de datos.
-     * @param {Object} user - Objeto de usuario a crear.
-     * @returns {Promise<void>} Promesa de usuario creado.
-     * @throws {Error} Error al crear el usuario.
+     * Registra a un usuario en los servicios de firebase de la aplicación.
+     * Si el registro es exitoso, devuelve un token de usuario. En caso
+     * contrario, lanza un error.
+     * @param {{name, email, password}} params - Objeto con los datos del usuario a registrar.
+     * @returns {Promise<string>} Promesa de token de usuario.
+     * @throws {Error} Error al registrar el usuario.
      */
-    createUser = (user) => this.service.createUser(user);
+    createUser = (params) => this.service.createUser(params);
 
     /**
      * Inicia sesión de un usuario en la aplicación.
-     * @param {string} uid - Identificador del usuario a autenticar.
-     * @returns {Promise<User>} Objeto de usuario autenticado.
+     * Si el inicio de sesión es exitoso, devuelve un token de usuario. En caso
+     * contrario, lanza un error.
+     * @param {{email, password}} params - Objeto con los datos del usuario a autenticar.
+     * @returns {Promise<string>} Promesa de token de usuario.
      * @throws {Error} Error al autenticar el usuario.
      */
-    loginUser = (user) => this.service.loginUser(user);
+    loginUser = (params) => this.service.loginUser(params);
 
     /**
      * Obtiene un usuario de la base de datos.
@@ -37,6 +41,32 @@ class UserModel {
      * @throws {Error} Error al obtener el usuario.
      */
     getUser = (id) => this.service.getUser(id);
+
+    /**
+     * Obtiene las plantas de un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @returns {Promise<Plant[]>} Promesa de las plantas encontradas.
+     * @throws {Error} Error al obtener las plantas.
+     */
+    getPlants = (uid) => this.service.getPlants(uid);
+
+    /**
+     * Añade una planta a un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @param {string} plantId - Identificador único de la planta.
+     * @returns {Promise<void>} Promesa de la planta añadida.
+     * @throws {Error} Error al añadir la planta.
+     */
+    addPlant = (uid, plantId) => this.service.addPlant(uid, plantId);
+
+    /**
+     * Elimina una planta de un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @param {string} plantId - Identificador único de la planta.
+     * @returns {Promise<void>} Promesa de la planta eliminada.
+     * @throws {Error} Error al eliminar la planta.
+     */
+    removePlant = (uid, plantId) => this.service.removePlant(uid, plantId);
 }
 
 module.exports = UserModel;

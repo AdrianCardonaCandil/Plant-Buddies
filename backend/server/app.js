@@ -25,7 +25,9 @@ require('./middlewares/cors')(app)
 app.use('/api/auth', require('./routes/auth')(require('./models/User.model')))
 app.use('/api/plants', require('./routes/plants')(require('./models/Plant.model')))
 app.use('/api/model', require('./routes/model')(require('./models/Plant.model')))
+app.use('/api/users', require('./routes/users')(require('./models/User.model')))
 
 // Inicialización del servidor
 const PORT = process.env.PORT
-app.listen(PORT, () => console.log(`Servidor iniciado en http://localhost:${PORT}`))
+const DOMAIN = process.env.DOMAIN
+app.listen(PORT, '0.0.0.0', () => console.log(`Server running on http://${DOMAIN}:${PORT}`))
