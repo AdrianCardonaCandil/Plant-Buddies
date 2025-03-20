@@ -66,6 +66,31 @@ class UserService {
             throw new Error('Error al buscar el usuario', {cause: error});
         }
     }
+
+    /**
+     * Obtiene las plantas de un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @returns {Promise<Plant[]>} Promesa de las plantas encontradas.
+     * @throws {Error} Error al obtener las plantas.
+     */
+    getPlants = async (uid) => {
+        try {
+            const snapshot = await this.db.collection(this.collection).doc(uid).get();
+            if (!snapshot.exists) {
+                throw new Error('Usuario no encontrado');
+            }
+            const plantIds = snapshot.data().plants;
+            const plantsCollection = process.env.PLANTS_COLLECTION;
+            const plants = await Promise.all(plantIds.map(async (id) => {
+                const plantSnapshot = await this.db.collection(plantsCollection).doc(id).get();
+                return plantSnapshot.data();
+            }));
+            return plants;
+        } catch (error) {
+            console.log(error)
+            throw new Error('Error al obtener las plantas', {cause: error});
+        }
+    }
 }
 
 module.exports = UserService;

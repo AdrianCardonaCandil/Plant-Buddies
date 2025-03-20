@@ -37,6 +37,14 @@ class UserModel {
      * @throws {Error} Error al obtener el usuario.
      */
     getUser = (id) => this.service.getUser(id);
+
+    /**
+     * Obtiene las plantas de un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @returns {Promise<Plant[]>} Promesa de las plantas encontradas.
+     * @throws {Error} Error al obtener las plantas.
+     */
+    getPlants = (uid) => this.service.getPlants(uid);
 }
 
 module.exports = UserModel;
