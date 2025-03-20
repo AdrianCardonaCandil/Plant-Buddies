@@ -132,24 +132,13 @@ class PlantRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
-
-
-    override suspend fun searchPlants(query: String, filters: Set<Any>): Flow<List<Plant>> = flow {
+    override suspend fun searchPlants(filters: Map<String, Any>): Flow<List<Plant>> = flow {
         try {
-            val token = tokenManager.getToken()
-            if (token == null) {
-                emit(emptyList())
-                return@flow
-            }
-
             val response = plantService.searchPlants(filters)
             if (response.isSuccessful) {
                 val plants = response.body()?.map { it.toDomain() } ?: emptyList()
                 emit(plants)
             } else {
-                if (response.code() == 401) {
-                    tokenManager.clearToken()
-                }
                 emit(emptyList())
             }
         } catch (e: Exception) {

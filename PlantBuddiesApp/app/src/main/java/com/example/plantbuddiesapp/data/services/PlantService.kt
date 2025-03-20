@@ -31,7 +31,7 @@ interface PlantService {
 
     @GET("api/plants/")
     suspend fun searchPlants(
-        @Body filters: Set<Any>
+        @Body filters: Map<String, Any>
     ): Response<List<PlantDto>>
 
     @GET("api/plants/{plantId}")

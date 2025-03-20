@@ -10,6 +10,6 @@ interface PlantRepository {
     suspend fun getUserPlants(): Flow<List<Plant>>
     suspend fun getPlant(plantId: String): Result<Plant>
     suspend fun deletePlant(plantId: String): Result<Unit>
-    suspend fun searchPlants(query: String, filters: Set<Any>):Flow<List<Plant>>
+    suspend fun searchPlants(filters: Map<String,Any>):Flow<List<Plant>>
 
 }

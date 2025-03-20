@@ -127,7 +127,7 @@ fun HomeScreen(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = {
                     if (searchQuery.isNotEmpty()) {
-                        viewModel.searchPlants(searchQuery, emptySet())
+                        viewModel.searchPlants(mapOf("commonName" to searchQuery))
                     }
                 })
             )

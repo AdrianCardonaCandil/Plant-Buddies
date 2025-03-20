@@ -71,11 +71,11 @@ class PlantViewModel @Inject constructor(
         }
     }
 
-    fun savePlant(plant: Plant) {
+    fun savePlant(plantId: String) {
         viewModelScope.launch {
             _savePlantState.value = SavePlantState.Loading
 
-            plantRepository.savePlant(plant).fold(
+            plantRepository.savePlant(plantId).fold(
                 onSuccess = { savedPlant ->
                     _savePlantState.value = SavePlantState.Success(savedPlant)
                     loadUserPlants()
@@ -122,12 +122,12 @@ class PlantViewModel @Inject constructor(
         }
     }
 
-    fun searchPlants(query: String, filters: Set<Any>) {
+    fun searchPlants(filters: Map<String, Any> = emptyMap()) {
         viewModelScope.launch {
             _searchState.value = SearchState.Loading
 
             try {
-                plantRepository.searchPlants(query, filters).collectLatest { plants ->
+                plantRepository.searchPlants(filters).collectLatest { plants ->
                     _searchResults.value = plants
                     _searchState.value = SearchState.Success
                 }

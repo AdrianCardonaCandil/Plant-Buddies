@@ -424,7 +424,7 @@ fun PlantInformationScreen(navController: NavHostController, viewModel: PlantVie
                         onClick = {
                             selectedPlant?.let { plant ->
                                 if (!isPlantInCollection) {
-                                    viewModel.savePlant(plant)
+                                    plant.id?.let { viewModel.savePlant(it) }
                                 }
                                 navController.navigate(Screen.MyPlants.route)
                             }
