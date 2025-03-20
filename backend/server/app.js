@@ -28,4 +28,5 @@ app.use('/api/model', require('./routes/model')(require('./models/Plant.model'))
 
 // Inicialización del servidor
 const PORT = process.env.PORT
-app.listen(PORT, () => console.log(`Servidor iniciado en http://localhost:${PORT}`))
+const DOMAIN = process.env.DOMAIN
+app.listen(PORT, '0.0.0.0', () => console.log(`Server running on http://${DOMAIN}:${PORT}`))
