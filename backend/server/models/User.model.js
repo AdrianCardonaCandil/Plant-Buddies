@@ -54,6 +54,15 @@ class UserModel {
      * @throws {Error} Error al añadir la planta.
      */
     addPlant = (uid, plantId) => this.service.addPlant(uid, plantId);
+
+    /**
+     * Elimina una planta de un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @param {string} plantId - Identificador único de la planta.
+     * @returns {Promise<void>} Promesa de la planta eliminada.
+     * @throws {Error} Error al eliminar la planta.
+     */
+    removePlant = (uid, plantId) => this.service.removePlant(uid, plantId);
 }
 
 module.exports = UserModel;

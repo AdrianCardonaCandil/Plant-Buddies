@@ -28,13 +28,16 @@ module.exports = (UserModel) => {
                 })
             }
         } catch (error) {
-            console.error('Error al obtener las plantas de un usuario.')
             return res.status(500).json({
-                message: 'Error al obtener las plantas de un usuario.'
+                message: error.message
             })
         }
     })
 
+    /**
+     * Añade una planta a la lista de un usuario.
+     * @name api/users/plantlist/:id
+     */
     router.post('/plantlist/:id', tokenVerify, async (req, res) => {
         try {
             const user = User.parse({...req.user, ...req.body});
@@ -46,9 +49,29 @@ module.exports = (UserModel) => {
                 })
             }
         } catch (error) {
-            console.error('Error al añadir una planta a la lista de un usuario.')
             return res.status(500).json({
-                message: 'Error al añadir una planta a la lista de un usuario.'
+                message: error.message
+            })
+        }
+    })
+
+    /**
+     * Elimina una planta de la lista de un usuario.
+     * @name api/users/plantlist/:id
+     */
+    router.delete('/plantlist/:id', tokenVerify, async (req, res) => {
+        try {
+            const user = User.parse({...req.user, ...req.body});
+            if (user) {
+                const plants = await userModel.removePlant(user.uid, req.params.id)
+                return res.status(200).json({
+                    message: 'Planta eliminada correctamente.',
+                    plants: plants
+                })
+            }
+        } catch (error) {
+            return res.status(500).json({
+                message: error.message
             })
         }
     })

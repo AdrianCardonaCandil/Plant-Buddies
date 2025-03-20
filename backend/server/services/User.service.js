@@ -1,6 +1,7 @@
 const User = require("../schemes/User.scheme");
 const {db} = require("../config/firebase");
 const { DocumentSnapshot } = require("firebase-admin/firestore");
+const admin = require("firebase-admin");
 
 /**
  * Servicio para gestionar operaciones realizadas sobre objetos de usuario.
@@ -87,8 +88,7 @@ class UserService {
             }));
             return plants;
         } catch (error) {
-            console.log(error)
-            throw new Error('Error al obtener las plantas', {cause: error});
+            throw new Error(`Error al obtener las plantas: ${error.message}`);
         }
     }
 
@@ -112,7 +112,33 @@ class UserService {
             plantIds.push(plantId);
             await this.db.collection(this.collection).doc(uid).update({plants: plantIds});
         } catch (error) {
-            throw new Error('Error al añadir la planta', {cause: error});
+            throw new Error(`Error al añadir la planta: ${error.message}`);
+        }
+    }
+
+    /**
+     * Elimina una planta de un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @param {string} plantId - Identificador único de la planta.
+     * @returns {Promise<void>} Promesa de la planta eliminada.
+     * @throws {Error} Error al eliminar la planta.
+     */
+    removePlant = async (uid, plantId) => {
+        try {
+            const snapshot = await this.db.collection(this.collection).doc(uid).get();
+            if (!snapshot.exists) {
+                throw new Error('Usuario no encontrado');
+            }
+            const plantIds = snapshot.data().plants;
+            const index = plantIds.indexOf(plantId);
+            if (index === -1) {
+                throw new Error('La planta no está en la lista del usuario');
+            }
+            await this.db.collection(this.collection).doc(uid).update({
+                plants: admin.firestore.FieldValue.arrayRemove(plantId)
+            });
+        } catch (error) {
+            throw new Error(`Error al eliminar la planta: ${error.message}`);
         }
     }
 }
