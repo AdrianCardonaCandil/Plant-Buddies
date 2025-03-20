@@ -45,6 +45,15 @@ class UserModel {
      * @throws {Error} Error al obtener las plantas.
      */
     getPlants = (uid) => this.service.getPlants(uid);
+
+    /**
+     * Añade una planta a un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @param {string} plantId - Identificador único de la planta.
+     * @returns {Promise<void>} Promesa de la planta añadida.
+     * @throws {Error} Error al añadir la planta.
+     */
+    addPlant = (uid, plantId) => this.service.addPlant(uid, plantId);
 }
 
 module.exports = UserModel;

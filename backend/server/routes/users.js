@@ -35,5 +35,23 @@ module.exports = (UserModel) => {
         }
     })
 
+    router.post('/plantlist/:id', tokenVerify, async (req, res) => {
+        try {
+            const user = User.parse({...req.user, ...req.body});
+            if (user) {
+                const plants = await userModel.addPlant(user.uid, req.params.id)
+                return res.status(200).json({
+                    message: 'Planta añadida correctamente.',
+                    plants: plants
+                })
+            }
+        } catch (error) {
+            console.error('Error al añadir una planta a la lista de un usuario.')
+            return res.status(500).json({
+                message: 'Error al añadir una planta a la lista de un usuario.'
+            })
+        }
+    })
+
     return router;
 }

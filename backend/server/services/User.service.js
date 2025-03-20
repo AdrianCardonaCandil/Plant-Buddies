@@ -91,6 +91,30 @@ class UserService {
             throw new Error('Error al obtener las plantas', {cause: error});
         }
     }
+
+    /**
+     * Añade una planta a un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @param {string} plantId - Identificador único de la planta.
+     * @returns {Promise<void>} Promesa de la planta añadida.
+     * @throws {Error} Error al añadir la planta.
+     */
+    addPlant = async (uid, plantId) => {
+        try {
+            const snapshot = await this.db.collection(this.collection).doc(uid).get();
+            if (!snapshot.exists) {
+                throw new Error('Usuario no encontrado');
+            }
+            const plantIds = snapshot.data().plants;
+            if (plantIds.includes(plantId)) {
+                throw new Error('La planta ya está en la lista del usuario');
+            }
+            plantIds.push(plantId);
+            await this.db.collection(this.collection).doc(uid).update({plants: plantIds});
+        } catch (error) {
+            throw new Error('Error al añadir la planta', {cause: error});
+        }
+    }
 }
 
 module.exports = UserService;
