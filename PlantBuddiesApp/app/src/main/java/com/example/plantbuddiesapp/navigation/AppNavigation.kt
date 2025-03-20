@@ -23,6 +23,7 @@ import com.example.plantbuddiesapp.presentation.ui.screens.Home.PlantCameraScree
 import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.plantbuddiesapp.presentation.ui.screens.Common.BottomNavigationBar
+import com.example.plantbuddiesapp.presentation.ui.screens.Search.SearchResultsScreen
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
@@ -83,6 +84,9 @@ fun AppNavigation() {
                         }
 
                         PlantInformationScreen(navController, viewModel)
+                    }
+                    composable("search_results") {
+                        SearchResultsScreen(navController)
                     }
 
                     composable("plant_information") {

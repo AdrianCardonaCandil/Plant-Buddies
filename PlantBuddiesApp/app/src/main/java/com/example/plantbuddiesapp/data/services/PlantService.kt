@@ -13,7 +13,7 @@ interface PlantService {
         @Part image: MultipartBody.Part
     ): Response<PlantResponseDto>
 
-    @GET("sers/plantlist")
+    @GET("users/plantlist")
     suspend fun getUserPlants(
         @Header("Authorization") token: String
     ): Response<List<PlantDto>>
@@ -32,7 +32,7 @@ interface PlantService {
 
     @GET("plants/")
     suspend fun searchPlants(
-        @Body filters: Map<String, Any>
+        @QueryMap filters: Map<String, String>
     ): Response<List<PlantDto>>
 
     @GET("plants/{plantId}")

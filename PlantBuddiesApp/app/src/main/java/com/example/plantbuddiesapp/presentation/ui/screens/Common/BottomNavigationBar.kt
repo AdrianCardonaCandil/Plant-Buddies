@@ -31,6 +31,7 @@ fun BottomNavigationBar(navController: NavController) {
                             Screen.User -> Icons.Default.Person
                             Screen.PlantCamera -> TODO()
                             Screen.PlantResults -> TODO()
+                            Screen.Search -> TODO()
                         },
                         contentDescription = screen.route
                     )

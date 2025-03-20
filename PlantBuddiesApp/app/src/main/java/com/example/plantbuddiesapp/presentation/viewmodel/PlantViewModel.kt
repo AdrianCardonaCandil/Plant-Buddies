@@ -10,13 +10,16 @@ import com.example.plantbuddiesapp.presentation.ui.states.IdentificationState
 import com.example.plantbuddiesapp.presentation.ui.states.SavePlantState
 import com.example.plantbuddiesapp.presentation.ui.states.SearchState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(FlowPreview::class)
 @HiltViewModel
 class PlantViewModel @Inject constructor(
     private val plantRepository: PlantRepository
@@ -41,12 +44,36 @@ class PlantViewModel @Inject constructor(
 
     private val _searchState = MutableStateFlow<SearchState>(SearchState.Initial)
     val searchState: StateFlow<SearchState> = _searchState.asStateFlow()
+
+    // Search query input
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    // Active filters
+    private val _activeFilters = MutableStateFlow<Map<String, Any>>(emptyMap())
+    val activeFilters: StateFlow<Map<String, Any>> = _activeFilters.asStateFlow()
+
     private var isIdentifying = false
     private val _waterNeeds = MutableStateFlow<Map<String?, Float>>(emptyMap())
     private val _sunlightNeeds = MutableStateFlow<Map<String?, Float>>(emptyMap())
+
     init {
         loadUserPlants()
-        loadSamplePlants()
+
+        viewModelScope.launch {
+            _searchQuery
+                .debounce(300) // 300ms debounce
+                .collectLatest { query ->
+                    if (query.length >= 2) {
+                        searchPlants()
+                    } else if (query.isEmpty() && _activeFilters.value.isEmpty()) {
+                        _searchResults.value = emptyList()
+                        _searchState.value = SearchState.Initial
+                    } else if (query.isEmpty() && _activeFilters.value.isNotEmpty()) {
+                        searchPlants()
+                    }
+                }
+        }
     }
 
     fun identifyPlant(imageUri: Uri) {
@@ -129,20 +156,101 @@ class PlantViewModel @Inject constructor(
         }
     }
 
-    fun searchPlants(filters: Map<String, Any> = emptyMap()) {
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+
+    fun toggleFilter(key: String, value: Any) {
+        val updatedFilters = _activeFilters.value.toMutableMap()
+
+        if (updatedFilters.containsKey(key) && updatedFilters[key] == value) {
+            updatedFilters.remove(key)
+        } else {
+            updatedFilters[key] = value
+        }
+
+        _activeFilters.value = updatedFilters
+        searchPlants()
+    }
+
+
+    fun clearFilters() {
+        _activeFilters.value = emptyMap()
+        if (_searchQuery.value.isNotEmpty()) {
+            searchPlants()
+        } else {
+            _searchResults.value = emptyList()
+            _searchState.value = SearchState.Initial
+        }
+    }
+
+    fun searchPlants() {
         viewModelScope.launch {
             _searchState.value = SearchState.Loading
 
+            val filters = buildSearchFilters()
+
             try {
-                plantRepository.searchPlants(filters).collectLatest { plants ->
+                // Usa collect en lugar de collectLatest para asegurar que se procesen todos los elementos
+                plantRepository.searchPlants(filters).collect { plants ->
                     _searchResults.value = plants
-                    _searchState.value = SearchState.Success
+                    _searchState.value = if (plants.isEmpty()) {
+                        SearchState.Empty("No se encontraron plantas que coincidan con tus criterios")
+                    } else {
+                        SearchState.Success
+                    }
                 }
             } catch (e: Exception) {
+                _searchResults.value = emptyList()
                 _searchState.value = SearchState.Error(e.message ?: "Error searching plants")
             }
         }
     }
+
+    private fun buildSearchFilters(): Map<String, Any> {
+        val filters = _activeFilters.value.toMutableMap()
+
+        if (_searchQuery.value.isNotEmpty()) {
+            filters["query"] = _searchQuery.value
+        }
+
+        return filters
+    }
+
+    fun getFilterOptions(): Map<String, List<FilterOption>> {
+        return mapOf(
+            "sunlight" to listOf(
+                FilterOption("Full Sun", "full_sun"),
+                FilterOption("Partial Shade", "partial_shade"),
+                FilterOption("Full Shade", "full_shade")
+            ),
+            "watering" to listOf(
+                FilterOption("Low", "low"),
+                FilterOption("Medium", "medium"),
+                FilterOption("High", "high")
+            ),
+            "indoor" to listOf(
+                FilterOption("Indoor", "true"),
+                FilterOption("Outdoor", "false")
+            ),
+            "careLevel" to listOf(
+                FilterOption("Easy", "easy"),
+                FilterOption("Medium", "medium"),
+                FilterOption("Hard", "hard")
+            ),
+            "features" to listOf(
+                FilterOption("Flowering", "flowers"),
+                FilterOption("Fruits", "fruits"),
+                FilterOption("Non-Poisonous", "non_poisonous")
+            )
+        )
+    }
+
+    fun isFilterActive(key: String, value: Any): Boolean {
+        return _activeFilters.value[key] == value
+    }
+
+    data class FilterOption(val displayName: String, val value: String)
 
     private fun updatePlantUIProperties(plantId: String?, waterNeeds: Float, sunlightNeeds: Float) {
         _waterNeeds.value = _waterNeeds.value.toMutableMap().apply {
@@ -183,3 +291,5 @@ class PlantViewModel @Inject constructor(
         }
     }
 }
+
+data class FilterOption(val displayName: String, val value: String)

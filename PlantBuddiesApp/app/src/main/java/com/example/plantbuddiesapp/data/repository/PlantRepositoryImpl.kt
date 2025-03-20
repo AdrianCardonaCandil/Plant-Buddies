@@ -138,7 +138,8 @@ class PlantRepositoryImpl @Inject constructor(
     }
     override suspend fun searchPlants(filters: Map<String, Any>): Flow<List<Plant>> = flow {
         try {
-            val response = plantService.searchPlants(filters)
+            val stringFilters = filters.mapValues { it.value.toString() }
+            val response = plantService.searchPlants(stringFilters)
             if (response.isSuccessful) {
                 val plants = response.body()?.map { it.toDomain() } ?: emptyList()
                 emit(plants)

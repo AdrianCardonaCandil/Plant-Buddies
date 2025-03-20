@@ -1,10 +1,20 @@
 package com.example.plantbuddiesapp.presentation.ui.screens.Home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,21 +25,28 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -37,11 +54,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.navigation.NavHostController
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -49,7 +67,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import com.example.plantbuddiesapp.R
+import com.example.plantbuddiesapp.domain.model.Plant
+import com.example.plantbuddiesapp.presentation.ui.screens.MyPlants.PlantCard
 import com.example.plantbuddiesapp.presentation.ui.states.SearchState
 import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
 
@@ -60,6 +82,12 @@ fun HomeScreen(
 ) {
     val searchResults by viewModel.searchResults.collectAsState()
     val searchState by viewModel.searchState.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val activeFilters by viewModel.activeFilters.collectAsState()
+
+    var isSearchFocused by remember { mutableStateOf(false) }
+    var showFilters by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
 
     Box(
         modifier = Modifier
@@ -73,8 +101,9 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(50.dp))
+
             Image(
-                painter = painterResource(id = R.mipmap.ic_launcher_foreground),
+                painter = painterResource(id = R.drawable.ic_launcher_foreground),
                 contentDescription = stringResource(R.string.app_name),
                 modifier = Modifier.size(200.dp)
             )
@@ -96,22 +125,52 @@ fun HomeScreen(
                 lineHeight = 22.sp
             )
 
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            var isSearchFocused by remember { mutableStateOf(false) }
-            var searchQuery by remember { mutableStateOf("") }
-
+            // Search bar
             OutlinedTextField(
                 value = searchQuery,
-                onValueChange = { searchQuery = it },
-                placeholder = { Text(stringResource(R.string.search_hint), color = MaterialTheme.colorScheme.outline) },
+                onValueChange = { viewModel.updateSearchQuery(it) },
+                placeholder = {
+                    Text(
+                        stringResource(R.string.search_hint),
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Filled.Search,
                         contentDescription = stringResource(R.string.search_icon_description),
-                        tint = if (isSearchFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                        tint = if (isSearchFocused) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.outline,
                         modifier = Modifier.size(24.dp)
                     )
+                },
+                trailingIcon = {
+                    Row {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = {
+                                viewModel.updateSearchQuery("")
+                            }) {
+                                Icon(
+                                    Icons.Default.Clear,
+                                    contentDescription = "Clear search",
+                                    tint = MaterialTheme.colorScheme.outline
+                                )
+                            }
+                        }
+
+                        IconButton(onClick = { showFilters = !showFilters }) {
+                            Icon(
+                                Icons.Default.FilterList,
+                                contentDescription = "Filters",
+                                tint = if (activeFilters.isNotEmpty())
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.outline
+                            )
+                        }
+                    }
                 },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -136,15 +195,63 @@ fun HomeScreen(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = {
-                    if (searchQuery.isNotEmpty()) {
-                        viewModel.searchPlants(mapOf("commonName" to searchQuery.trim()))
+                    if (searchQuery.isNotEmpty() || activeFilters.isNotEmpty()) {
+                        navController.navigate("search_results")
+                        focusManager.clearFocus()
                     }
                 })
             )
 
-            // Display search results or loading state
-            when (searchState) {
-                is SearchState.Loading -> {
+            if (searchQuery.isNotEmpty() || activeFilters.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                        navController.navigate("search_results")
+                        focusManager.clearFocus()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Search Plants")
+                }
+            }
+            if (activeFilters.isNotEmpty()) {
+                ActiveFilterChips(
+                    activeFilters = activeFilters,
+                    onClearFilter = { key ->
+                        val value = activeFilters[key] ?: return@ActiveFilterChips
+                        viewModel.toggleFilter(key, value)
+                    },
+                    onClearAll = { viewModel.clearFilters() }
+                )
+            }
+
+            AnimatedVisibility(
+                visible = showFilters,
+                enter = fadeIn() + slideInVertically(),
+                exit = fadeOut(animationSpec = tween(durationMillis = 200))
+            ) {
+                FiltersSection(
+                    viewModel = viewModel,
+                    onFilterSelected = { key, value ->
+                        viewModel.toggleFilter(key, value)
+                        // Keep focus to avoid keyboard popping up again
+                    }
+                )
+            }
+
+            when {
+                searchState is SearchState.Loading -> {
                     CircularProgressIndicator(
                         modifier = Modifier
                             .padding(top = 16.dp)
@@ -152,74 +259,188 @@ fun HomeScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
-                is SearchState.Success -> {
-                    if (searchResults.isNotEmpty()) {
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(max = 200.dp)
-                                .padding(top = 16.dp)
-                        ) {
-                            items(searchResults) { plant ->
-                                plant.commonName?.let {
-                                    Text(
-                                        text = it,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable {
-                                                viewModel.selectPlant(plant)
-                                                navController.navigate("plant_information")
-                                            }
-                                            .padding(16.dp)
-                                    )
-                                }
-                            }
-                        }
-                    } else {
+
+                else -> {
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    Button(
+                        onClick = { navController.navigate("plantCamera") },
+                        modifier = Modifier
+                            .width(200.dp)
+                            .height(52.dp)
+                            .shadow(
+                                elevation = 6.dp,
+                                shape = RoundedCornerShape(26.dp),
+                                spotColor = MaterialTheme.colorScheme.primary
+                            ),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        shape = RoundedCornerShape(26.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.CameraAlt,
+                            contentDescription = stringResource(R.string.camera_icon_description),
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "No plants found",
-                            modifier = Modifier.padding(top = 16.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = stringResource(R.string.identify_button),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontSize = 16.sp
                         )
                     }
+
+                    Spacer(modifier = Modifier.height(50.dp))
                 }
-                is SearchState.Error -> {
-                    Text(
-                        text = (searchState as SearchState.Error).message,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(top = 16.dp)
-                    )
-                }
-                else -> {}
             }
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.height(16.dp))
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun ActiveFilterChips(
+    activeFilters: Map<String, Any>,
+    onClearFilter: (String) -> Unit,
+    onClearAll: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Filters:",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
 
-            Button(
-                onClick = { navController.navigate("plantCamera") },
-                modifier = Modifier
-                    .width(200.dp)
-                    .height(52.dp)
-                    .shadow(
-                        elevation = 6.dp,
-                        shape = RoundedCornerShape(26.dp),
-                        spotColor = MaterialTheme.colorScheme.primary
-                    ),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                shape = RoundedCornerShape(26.dp)
+            TextButton(
+                onClick = onClearAll
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.CameraAlt,
-                    contentDescription = stringResource(R.string.camera_icon_description),
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.identify_button),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontSize = 16.sp
+                Text("Clear All")
+            }
+        }
+
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            activeFilters.forEach { (key, _) ->
+                val displayName = when (key) {
+                    "sunlight" -> "Sunlight"
+                    "watering" -> "Water"
+                    "indoor" -> "Location"
+                    "careLevel" -> "Care"
+                    "size" -> "Size"
+                    "features" -> "Feature"
+                    "query" -> "Search"
+                    else -> key
+                }
+
+                val valueDisplay = when (val value = activeFilters[key]) {
+                    is String -> when(value) {
+                        "full_sun" -> "Full Sun"
+                        "partial_shade" -> "Partial Shade"
+                        "full_shade" -> "Full Shade"
+                        "low" -> "Low Water"
+                        "medium" -> "Medium Water"
+                        "high" -> "High Water"
+                        "indoor" -> "Indoor"
+                        "outdoor" -> "Outdoor"
+                        "easy" -> "Easy Care"
+                        "medium" -> "Medium Care"
+                        "hard" -> "Hard Care"
+                        "small" -> "Small"
+                        "medium" -> "Medium"
+                        "large" -> "Large"
+                        "flowers" -> "Flowering"
+                        "edible" -> "Edible"
+                        "pet_safe" -> "Pet Safe"
+                        else -> value
+                    }
+                    is Boolean -> if (value) "Yes" else "No"
+                    else -> value.toString()
+                }
+
+                FilterChip(
+                    selected = true,
+                    onClick = { onClearFilter(key) },
+                    label = { Text("$displayName: $valueDisplay") },
+                    trailingIcon = {
+                        Icon(
+                            Icons.Default.Clear,
+                            contentDescription = "Clear filter",
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 )
             }
         }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun FiltersSection(
+    viewModel: PlantViewModel,
+    onFilterSelected: (String, String) -> Unit
+) {
+    val filterOptions = viewModel.getFilterOptions()
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            text = "Filter by:",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+
+        filterOptions.forEach { (category, options) ->
+            Text(
+                text = when(category) {
+                    "sunlight" -> "Sunlight"
+                    "watering" -> "Water Needs"
+                    "indoor" -> "Location"
+                    "careLevel" -> "Difficulty"
+                    "size" -> "Plant Size"
+                    "features" -> "Features"
+                    else -> category
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 12.dp, bottom = 4.dp)
+            )
+
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                options.forEach { option ->
+                    val isSelected = viewModel.isFilterActive(category, option.value)
+
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { onFilterSelected(category, option.value) },
+                        label = { Text(option.displayName) }
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        Divider()
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
