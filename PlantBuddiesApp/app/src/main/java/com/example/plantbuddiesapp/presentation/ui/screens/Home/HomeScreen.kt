@@ -2,15 +2,19 @@ package com.example.plantbuddiesapp.presentation.ui.screens.Home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -19,6 +23,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -26,6 +31,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +50,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.plantbuddiesapp.R
+import com.example.plantbuddiesapp.presentation.ui.states.SearchState
 import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
 
 @Composable
@@ -51,6 +58,9 @@ fun HomeScreen(
     navController: NavHostController,
     viewModel: PlantViewModel = hiltViewModel()
 ) {
+    val searchResults by viewModel.searchResults.collectAsState()
+    val searchState by viewModel.searchState.collectAsState()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -127,10 +137,61 @@ fun HomeScreen(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = {
                     if (searchQuery.isNotEmpty()) {
-                        viewModel.searchPlants(mapOf("commonName" to searchQuery))
+                        viewModel.searchPlants(mapOf("commonName" to searchQuery.trim()))
                     }
                 })
             )
+
+            // Display search results or loading state
+            when (searchState) {
+                is SearchState.Loading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .padding(top = 16.dp)
+                            .size(40.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                is SearchState.Success -> {
+                    if (searchResults.isNotEmpty()) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 200.dp)
+                                .padding(top = 16.dp)
+                        ) {
+                            items(searchResults) { plant ->
+                                plant.commonName?.let {
+                                    Text(
+                                        text = it,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                viewModel.selectPlant(plant)
+                                                navController.navigate("plant_information")
+                                            }
+                                            .padding(16.dp)
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        Text(
+                            text = "No plants found",
+                            modifier = Modifier.padding(top = 16.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                is SearchState.Error -> {
+                    Text(
+                        text = (searchState as SearchState.Error).message,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
+                else -> {}
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

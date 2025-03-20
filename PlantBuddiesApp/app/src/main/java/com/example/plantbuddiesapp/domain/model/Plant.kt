@@ -1,7 +1,7 @@
 package com.example.plantbuddiesapp.domain.model
 
 data class Plant(
-    val scientificName: String,
+    val scientificName: String? = null,
     val commonName: String,
     val id: String? = null,
     val imageUri: String? = null,

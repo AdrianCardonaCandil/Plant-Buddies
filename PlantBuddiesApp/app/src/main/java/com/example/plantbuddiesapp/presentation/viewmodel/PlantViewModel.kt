@@ -41,31 +41,38 @@ class PlantViewModel @Inject constructor(
 
     private val _searchState = MutableStateFlow<SearchState>(SearchState.Initial)
     val searchState: StateFlow<SearchState> = _searchState.asStateFlow()
-
+    private var isIdentifying = false
     private val _waterNeeds = MutableStateFlow<Map<String?, Float>>(emptyMap())
-    val waterNeeds: StateFlow<Map<String?, Float>> = _waterNeeds.asStateFlow()
-
     private val _sunlightNeeds = MutableStateFlow<Map<String?, Float>>(emptyMap())
-    val sunlightNeeds: StateFlow<Map<String?, Float>> = _sunlightNeeds.asStateFlow()
-
     init {
         loadUserPlants()
         loadSamplePlants()
     }
 
     fun identifyPlant(imageUri: Uri) {
+        if (isIdentifying) {
+            println("Ya hay una identificación en proceso. Ignorando solicitud.")
+            return
+        }
+
         viewModelScope.launch {
+            isIdentifying = true
             _identificationState.value = IdentificationState.Loading
+            println("Iniciando identificación de planta para imagen: $imageUri")
 
             plantRepository.identifyPlant(imageUri).fold(
                 onSuccess = { plant ->
+                    println("Planta identificada exitosamente: ${plant.commonName}")
                     updatePlantUIProperties(plant.id, 0.7f, 0.6f)
 
                     _identificationState.value = IdentificationState.Success(plant)
                     _selectedPlant.value = plant
+                    isIdentifying = false
                 },
                 onFailure = { error ->
+                    println("Error al identificar planta: ${error.message}")
                     _identificationState.value = IdentificationState.Error(error.message ?: "Error desconocido")
+                    isIdentifying = false
                 }
             )
         }

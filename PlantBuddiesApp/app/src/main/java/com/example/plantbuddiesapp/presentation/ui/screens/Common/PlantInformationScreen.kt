@@ -39,6 +39,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -70,16 +71,44 @@ import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.example.plantbuddiesapp.domain.model.Plant
 import com.example.plantbuddiesapp.navigation.Screen
+import com.example.plantbuddiesapp.presentation.ui.states.IdentificationState
 import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
 import kotlinx.coroutines.delay
 
 @Composable
 fun PlantInformationScreen(navController: NavHostController, viewModel: PlantViewModel) {
     val selectedPlant by viewModel.selectedPlant.collectAsState()
+    val identificationState by viewModel.identificationState.collectAsState()
 
     if (selectedPlant == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No plant selected")
+            when (identificationState) {
+                is IdentificationState.Loading -> {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(50.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Identifying plant...")
+                    }
+                }
+                is IdentificationState.Error -> {
+                    val error = (identificationState as IdentificationState.Error).message
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            "Error identifying plant",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(error)
+                    }
+                }
+                else -> {
+                    Text("No plant selected")
+                }
+            }
         }
         return
     }

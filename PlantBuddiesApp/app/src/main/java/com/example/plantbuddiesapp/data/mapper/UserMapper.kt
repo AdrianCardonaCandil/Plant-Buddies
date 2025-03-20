@@ -26,14 +26,3 @@ fun User.toDto(): UserDto {
         plants = plants.map { it.toDto() }
     )
 }
-
-fun User.toProfileUpdateDto(): UserDto {
-    return UserDto(
-        uid = uid,
-        email = email,
-        name = name,
-        country = country,
-        description = description,
-        imageUrl = imageUrl
-    )
-}

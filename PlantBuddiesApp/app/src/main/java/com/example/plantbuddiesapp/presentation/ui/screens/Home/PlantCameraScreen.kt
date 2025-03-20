@@ -230,7 +230,7 @@ fun PlantCameraScreen(
                             uri.toString(),
                             StandardCharsets.UTF_8.toString()
                         )
-                        navController.navigate("plant_information")
+                        navController.navigate("plantResults/$encodedUri")
                     }
                 }
             )

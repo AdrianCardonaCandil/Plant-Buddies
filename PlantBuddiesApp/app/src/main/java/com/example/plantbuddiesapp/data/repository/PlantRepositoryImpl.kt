@@ -33,13 +33,17 @@ class PlantRepositoryImpl @Inject constructor(
 
             if (response.isSuccessful) {
                 response.body()?.let {
-                    val plant = it.toDomain()
-                    Result.success(plant.copy(imageUri = imageUri.toString()))
+                    println("Respuesta recibida del servidor: ${it.message}")
+                    val plantDto = it.plant
+                    val plant = plantDto.toDomain()
+                    Result.success(plant)
                 } ?: Result.failure(Exception("Empty response"))
             } else {
                 Result.failure(Exception("Failed to identify plant: ${response.code()}"))
             }
         } catch (e: Exception) {
+            println("Error en identifyPlant: ${e.message}")
+            e.printStackTrace()
             Result.failure(e)
         }
     }

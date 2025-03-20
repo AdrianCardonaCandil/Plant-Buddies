@@ -244,14 +244,16 @@ fun PlantCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text(
-                text = plant.commonName,
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                ),
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            plant.commonName?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
