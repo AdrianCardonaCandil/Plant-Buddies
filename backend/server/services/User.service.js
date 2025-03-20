@@ -1,5 +1,5 @@
 const User = require("../schemes/User.scheme");
-const {db} = require("../config/firebase");
+const {db, auth} = require("../config/firebase");
 const { DocumentSnapshot } = require("firebase-admin/firestore");
 const admin = require("firebase-admin");
 
@@ -16,37 +16,57 @@ class UserService {
     constructor() {
         this.collection = process.env.USERS_COLLECTION;
         this.db = db;
+        this.tokenDuration = process.env.TOKEN_DURATION;
     }
 
     /**
-     * Crea un nuevo usuario en la base de datos.
-     * @param {Object} user - Objeto de usuario a crear.
-     * @returns {Promise<void>} Promesa de usuario creado.
-     * @throws {Error} Error al crear el usuario.
+     * Registra a un usuario en los servicios de firebase de la aplicación.
+     * Si el registro es exitoso, crea el usuario en la base de datos y
+     * devuelve un token de usuario. En caso contrario, lanza un error.
+     * @param {{name, email, password}} params - Objeto con los datos del usuario a registrar.
+     * @returns {Promise<string>} Promesa de token de usuario.
+     * @throws {Error} Error al registrar el usuario.
      */
-    createUser = async (user) => {
+    createUser = async (params) => {
         try {
-            await this.db.collection(this.collection).doc(user.uid).set({...user});
+            const {name, email, password} = params
+            const userRecord = await auth.createUser({
+                email: email,
+                password: password,
+                displayName: name
+            })
+            const user = User.parse({
+                uid: userRecord.uid,
+                email: userRecord.email,
+                name: userRecord.displayName,
+                password: password,
+            })
+            await this.db.collection(this.collection).doc(user.uid).set({...user})
+            return await auth.createCustomToken(user.uid, {expiresIn: this.tokenDuration})
         } catch (error) {
-            throw new Error('Error al crear el usuario', {cause: error});
+            throw new Error('Error al registrar el usuario', {cause: error})
         }
     }
 
     /**
      * Inicia sesión de un usuario en la aplicación.
-     * @param {String} uid - Identificador del usuario a autenticar.
-     * @returns {Promise<User>} Objeto de usuario autenticado.
+     * Si el inicio de sesión es exitoso, devuelve un token de usuario. En caso
+     * contrario, lanza un error.
+     * @param {{email, password}} params - Objeto con los datos del usuario a autenticar.
+     * @returns {Promise<string>} Promesa de token de usuario.
      * @throws {Error} Error al autenticar el usuario.
      */
-    loginUser = async(uid) => {
+    loginUser = async(params) => {
         try {
-            const foundUser = await this.getUser(uid);
-            if (!foundUser) {
-                throw new Error('Usuario no encontrado');
+            const {email, password} = params
+            const userRecord = await auth.getUserByEmail(email)
+            const user = await this.getUser(userRecord.uid)
+            if (user.password !== password) {
+                throw new Error('Contraseña incorrecta')
             }
-            return foundUser;
+            return await auth.createCustomToken(userRecord.uid, {expiresIn: this.tokenDuration})
         } catch (error) {
-            throw new Error('Error al autenticar el usuario', {cause: error});
+            throw new Error('Error al autenticar el usuario', {cause: error})
         }
     }
 
@@ -58,13 +78,13 @@ class UserService {
      */
     getUser = async (uid) => {
         try {
-            const snapshot = await this.db.collection(this.collection).doc(uid).get();
+            const snapshot = await this.db.collection(this.collection).doc(uid).get()
             if (!snapshot.exists) {
-                throw new Error('Usuario no encontrado');
+                throw new Error('Usuario no encontrado')
             }
-            return User.parse(snapshot.data());
+            return User.parse(snapshot.data())
         } catch (error) {
-            throw new Error('Error al buscar el usuario', {cause: error});
+            throw new Error('Error al buscar el usuario', {cause: error})
         }
     }
 

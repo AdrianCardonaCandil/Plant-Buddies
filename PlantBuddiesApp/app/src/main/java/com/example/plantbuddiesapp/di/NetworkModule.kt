@@ -36,7 +36,7 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("https://bff-api-url.com/api/")
+            .baseUrl("http://adriancc.duckdns.org:3000/api/")
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

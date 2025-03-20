@@ -17,10 +17,10 @@ class User {
         this.email = email;
         this.name = name;
         this.password = password;
-        this.country = country;
-        this.description = description;
-        this.image = image;
-        this.plants = plants;
+        this.country = country || '';
+        this.description = description || '';
+        this.image = image || '';
+        this.plants = plants || [];
     }
     static parse = user => new User(user)
     static stringify = user => JSON.stringify(user)
