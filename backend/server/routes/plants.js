@@ -15,7 +15,7 @@ module.exports = (PlantModel) => {
     */
    const plantModel = new PlantModel();
 
-   router.get('/', async (req, res) => {
+   router.post('/', async (req, res) => {
        try {
            const plants = await plantModel.getPlants(req.body);
            return res.status(200).json({
