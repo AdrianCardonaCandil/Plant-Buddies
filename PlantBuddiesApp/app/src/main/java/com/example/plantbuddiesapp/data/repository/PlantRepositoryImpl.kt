@@ -44,13 +44,11 @@ class PlantRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun savePlant(plant: Plant): Result<Plant> {
+    override suspend fun savePlant(plantId: String): Result<Plant> {
         return try {
             val token = tokenManager.getToken() ?: return Result.failure(Exception("Not authenticated"))
 
-            val plantDto = plant.toRequestDto()
-
-            val response = plantService.savePlant(token, plantDto)
+            val response = plantService.savePlant(token, plantId)
 
             if (response.isSuccessful) {
                 response.body()?.let {
@@ -89,6 +87,28 @@ class PlantRepositoryImpl @Inject constructor(
             }
         } catch (e: Exception) {
             emit(emptyList())
+        }
+    }
+
+    override suspend fun getPlant(plantId: String): Result<Plant> {
+        return try {
+
+            val response = plantService.getPlant(plantId)
+
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Result.success(it.toDomain())
+                } ?: Result.failure(Exception("Empty response"))
+            } else {
+                if (response.code() == 401) {
+                    tokenManager.clearToken()
+                    Result.failure(Exception("Authentication required"))
+                } else {
+                    Result.failure(Exception("Failed to get plant: ${response.code()}"))
+                }
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 

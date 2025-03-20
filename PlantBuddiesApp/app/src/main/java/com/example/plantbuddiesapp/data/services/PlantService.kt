@@ -7,7 +7,7 @@ import retrofit2.http.*
 
 interface PlantService {
     @Multipart
-    @POST("api/model")
+    @GET("api/model")
     suspend fun identifyPlant(
         @Part image: MultipartBody.Part
     ): Response<PlantDto>
@@ -17,10 +17,10 @@ interface PlantService {
         @Header("Authorization") token: String
     ): Response<List<PlantDto>>
 
-    @POST("api/users/plantlist")
+    @POST("api/users/plantlist/{plantId}")
     suspend fun savePlant(
         @Header("Authorization") token: String,
-        @Body plant: PlantDto
+        @Path("plantId") plantId: String
     ): Response<PlantDto>
 
     @DELETE("api/users/plantlist/{plantId}")
@@ -33,4 +33,9 @@ interface PlantService {
     suspend fun searchPlants(
         @Body filters: Set<Any>
     ): Response<List<PlantDto>>
+
+    @GET("api/plants/{plantId}")
+    suspend fun getPlant(
+        @Path("plantId") plantId: String
+    ): Response<PlantDto>
 }
