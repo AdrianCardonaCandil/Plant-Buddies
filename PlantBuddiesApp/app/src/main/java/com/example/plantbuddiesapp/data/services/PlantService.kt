@@ -1,6 +1,7 @@
 package com.example.plantbuddiesapp.data.services
 
 import com.example.plantbuddiesapp.data.dto.PlantDto
+import com.example.plantbuddiesapp.data.dto.PlantListResponseDto
 import com.example.plantbuddiesapp.data.dto.PlantResponseDto
 import okhttp3.MultipartBody
 import retrofit2.Response
@@ -33,7 +34,7 @@ interface PlantService {
     @GET("plants/")
     suspend fun searchPlants(
         @QueryMap filters: Map<String, String>
-    ): Response<List<PlantDto>>
+    ): Response<PlantListResponseDto>
 
     @GET("plants/{plantId}")
     suspend fun getPlant(

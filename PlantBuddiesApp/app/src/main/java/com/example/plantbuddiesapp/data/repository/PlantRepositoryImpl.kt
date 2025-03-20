@@ -140,13 +140,24 @@ class PlantRepositoryImpl @Inject constructor(
         try {
             val stringFilters = filters.mapValues { it.value.toString() }
             val response = plantService.searchPlants(stringFilters)
+
             if (response.isSuccessful) {
-                val plants = response.body()?.map { it.toDomain() } ?: emptyList()
-                emit(plants)
+                val plantListResponse = response.body()
+                if (plantListResponse != null) {
+                    // Apply the mapper from the PlantMapper.kt file to each PlantDto
+                    val plants = plantListResponse.plants.map { plantDto ->
+                        // Use the extension function defined in PlantMapper.kt
+                        plantDto.toDomain()
+                    }
+                    emit(plants)
+                } else {
+                    emit(emptyList())
+                }
             } else {
                 emit(emptyList())
             }
         } catch (e: Exception) {
+            e.printStackTrace()
             emit(emptyList())
         }
     }
