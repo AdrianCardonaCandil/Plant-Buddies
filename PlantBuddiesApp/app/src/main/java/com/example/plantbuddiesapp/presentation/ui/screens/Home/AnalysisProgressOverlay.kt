@@ -30,29 +30,44 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.plantbuddiesapp.presentation.ui.states.IdentificationState
 import kotlinx.coroutines.delay
 
 @Composable
-fun AnalysisProgressOverlay(onComplete: () -> Unit) {
-
-    val analysisPhrases = listOf(
+fun AnalysisProgressOverlay(
+    identificationState: IdentificationState,
+    onComplete: () -> Unit
+) {
+    val initialPhrases = listOf(
         "Analyzing leaf structure...",
         "Identifying plant species...",
         "Checking growth patterns...",
-        "Almost there...",
-        "Found a match!"
+        "Almost there..."
     )
 
     var currentPhraseIndex by remember { mutableStateOf(0) }
     val infiniteTransition = rememberInfiniteTransition(label = "dots")
 
+    val currentPhrase = when {
+        identificationState is IdentificationState.Success -> "Found a match!"
+        identificationState is IdentificationState.Error -> "Error identifying plant"
+        currentPhraseIndex < initialPhrases.size -> initialPhrases[currentPhraseIndex]
+        else -> "Almost there..."
+    }
+
     LaunchedEffect(Unit) {
-        for (i in analysisPhrases.indices) {
+        for (i in initialPhrases.indices) {
             currentPhraseIndex = i
             delay(800)
         }
-        delay(500)
-        onComplete()
+    }
+
+    LaunchedEffect(identificationState) {
+        if (identificationState is IdentificationState.Success ||
+            identificationState is IdentificationState.Error) {
+            delay(800)
+            onComplete()
+        }
     }
 
     Box(
@@ -83,13 +98,19 @@ fun AnalysisProgressOverlay(onComplete: () -> Unit) {
                         modifier = Modifier
                             .size((12 * dotScale).dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.8f))
+                            .background(
+                                when {
+                                    identificationState is IdentificationState.Error -> MaterialTheme.colorScheme.error
+                                    identificationState is IdentificationState.Success -> MaterialTheme.colorScheme.primary
+                                    else -> MaterialTheme.colorScheme.primary
+                                }.copy(alpha = 0.8f)
+                            )
                     )
                 }
             }
 
             Text(
-                text = analysisPhrases[currentPhraseIndex],
+                text = currentPhrase,
                 color = Color.White,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Medium

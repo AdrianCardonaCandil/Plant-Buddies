@@ -52,6 +52,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.plantbuddiesapp.R
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.runtime.collectAsState
+import com.example.plantbuddiesapp.presentation.ui.states.IdentificationState
 import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -73,6 +75,7 @@ fun PlantCameraScreen(
     var isScanning by remember { mutableStateOf(false) }
     var analysisInProgress by remember { mutableStateOf(false) }
     var photoUri by remember { mutableStateOf<Uri?>(null) }
+    val identificationState by viewModel.identificationState.collectAsState()
 
     val cameraExecutor = remember { ContextCompat.getMainExecutor(context) }
     val cameraHelper = remember { CameraHelper(context, cameraExecutor) }
@@ -185,11 +188,7 @@ fun PlantCameraScreen(
                         cameraHelper.capturePhoto(
                             onImageCaptured = { uri ->
                                 photoUri = uri
-
-                                // Iniciar el análisis
                                 analysisInProgress = true
-
-                                // Usar el ViewModel para identificar la planta
                                 viewModel.identifyPlant(uri)
                             },
                             onError = { error ->
@@ -221,16 +220,19 @@ fun PlantCameraScreen(
 
         if (analysisInProgress) {
             AnalysisProgressOverlay(
+                identificationState = identificationState,
                 onComplete = {
                     analysisInProgress = false
                     isScanning = false
 
-                    photoUri?.let { uri ->
-                        val encodedUri = URLEncoder.encode(
-                            uri.toString(),
-                            StandardCharsets.UTF_8.toString()
-                        )
-                        navController.navigate("plantResults/$encodedUri")
+                    if (identificationState is IdentificationState.Success) {
+                        photoUri?.let { uri ->
+                            val encodedUri = URLEncoder.encode(
+                                uri.toString(),
+                                StandardCharsets.UTF_8.toString()
+                            )
+                            navController.navigate("plantResults/$encodedUri")
+                        }
                     }
                 }
             )
