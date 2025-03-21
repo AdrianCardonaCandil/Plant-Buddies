@@ -1,4 +1,4 @@
-package com.example.plantbuddiesapp.presentation.ui.screens.Home
+package com.example.plantbuddiesapp.presentation.ui.screens.Home.Identificator
 
 import android.content.Context
 import androidx.camera.core.CameraSelector

@@ -138,15 +138,14 @@ class PlantRepositoryImpl @Inject constructor(
     }
     override suspend fun searchPlants(filters: Map<String, Any>): Flow<List<Plant>> = flow {
         try {
+            println("Search Filters: $filters")
             val stringFilters = filters.mapValues { it.value.toString() }
             val response = plantService.searchPlants(stringFilters)
 
             if (response.isSuccessful) {
                 val plantListResponse = response.body()
                 if (plantListResponse != null) {
-                    // Apply the mapper from the PlantMapper.kt file to each PlantDto
                     val plants = plantListResponse.plants.map { plantDto ->
-                        // Use the extension function defined in PlantMapper.kt
                         plantDto.toDomain()
                     }
                     emit(plants)

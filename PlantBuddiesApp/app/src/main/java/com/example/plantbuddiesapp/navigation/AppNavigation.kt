@@ -19,11 +19,11 @@ import com.example.plantbuddiesapp.presentation.ui.screens.Home.HomeScreen
 import com.example.plantbuddiesapp.presentation.ui.screens.Common.PlantInformationScreen
 import com.example.plantbuddiesapp.presentation.ui.screens.MyPlants.MyPlantsScreen
 import com.example.plantbuddiesapp.presentation.ui.screens.User.UserScreen
-import com.example.plantbuddiesapp.presentation.ui.screens.Home.PlantCameraScreen
+import com.example.plantbuddiesapp.presentation.ui.screens.Home.Identificator.PlantCameraScreen
 import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.plantbuddiesapp.presentation.ui.screens.Common.BottomNavigationBar
-import com.example.plantbuddiesapp.presentation.ui.screens.Search.SearchResultsScreen
+import com.example.plantbuddiesapp.presentation.ui.screens.Home.SearchResultsScreen
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
@@ -60,6 +60,9 @@ fun AppNavigation() {
                     composable(Screen.User.route) {
                         UserScreen(navController)
                     }
+                    composable("search_results") {
+                        SearchResultsScreen(navController, viewModel)
+                    }
 
                     composable(Screen.PlantCamera.route) {
 
@@ -84,9 +87,6 @@ fun AppNavigation() {
                         }
 
                         PlantInformationScreen(navController, viewModel)
-                    }
-                    composable("search_results") {
-                        SearchResultsScreen(navController)
                     }
 
                     composable("plant_information") {

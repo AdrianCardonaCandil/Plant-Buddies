@@ -31,9 +31,9 @@ interface PlantService {
         @Path("plantId") plantId: String
     ): Response<Unit>
 
-    @GET("plants/")
+    @POST("plants/")
     suspend fun searchPlants(
-        @QueryMap filters: Map<String, String>
+        @Body filters: Map<String, String>
     ): Response<PlantListResponseDto>
 
     @GET("plants/{plantId}")

@@ -1,4 +1,4 @@
-package com.example.plantbuddiesapp.presentation.ui.screens.Home
+package com.example.plantbuddiesapp.presentation.ui.screens.Home.Identificator
 
 import android.Manifest
 import android.net.Uri

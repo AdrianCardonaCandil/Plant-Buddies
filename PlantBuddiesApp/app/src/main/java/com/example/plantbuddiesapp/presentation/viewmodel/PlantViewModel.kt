@@ -45,11 +45,9 @@ class PlantViewModel @Inject constructor(
     private val _searchState = MutableStateFlow<SearchState>(SearchState.Initial)
     val searchState: StateFlow<SearchState> = _searchState.asStateFlow()
 
-    // Search query input
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    // Active filters
     private val _activeFilters = MutableStateFlow<Map<String, Any>>(emptyMap())
     val activeFilters: StateFlow<Map<String, Any>> = _activeFilters.asStateFlow()
 
@@ -156,100 +154,6 @@ class PlantViewModel @Inject constructor(
         }
     }
 
-    fun updateSearchQuery(query: String) {
-        _searchQuery.value = query
-    }
-
-    fun toggleFilter(key: String, value: Any) {
-        val updatedFilters = _activeFilters.value.toMutableMap()
-
-        if (updatedFilters.containsKey(key) && updatedFilters[key] == value) {
-            updatedFilters.remove(key)
-        } else {
-            updatedFilters[key] = value
-        }
-
-        _activeFilters.value = updatedFilters
-        searchPlants()
-    }
-
-
-    fun clearFilters() {
-        _activeFilters.value = emptyMap()
-        if (_searchQuery.value.isNotEmpty()) {
-            searchPlants()
-        } else {
-            _searchResults.value = emptyList()
-            _searchState.value = SearchState.Initial
-        }
-    }
-
-    fun searchPlants() {
-        viewModelScope.launch {
-            _searchState.value = SearchState.Loading
-
-            val filters = buildSearchFilters()
-
-            try {
-                // Usa collect en lugar de collectLatest para asegurar que se procesen todos los elementos
-                plantRepository.searchPlants(filters).collect { plants ->
-                    _searchResults.value = plants
-                    _searchState.value = if (plants.isEmpty()) {
-                        SearchState.Empty("No se encontraron plantas que coincidan con tus criterios")
-                    } else {
-                        SearchState.Success
-                    }
-                }
-            } catch (e: Exception) {
-                _searchResults.value = emptyList()
-                _searchState.value = SearchState.Error(e.message ?: "Error searching plants")
-            }
-        }
-    }
-
-    private fun buildSearchFilters(): Map<String, Any> {
-        val filters = _activeFilters.value.toMutableMap()
-
-        if (_searchQuery.value.isNotEmpty()) {
-            filters["query"] = _searchQuery.value
-        }
-
-        return filters
-    }
-
-    fun getFilterOptions(): Map<String, List<FilterOption>> {
-        return mapOf(
-            "sunlight" to listOf(
-                FilterOption("Full Sun", "full_sun"),
-                FilterOption("Partial Shade", "partial_shade"),
-                FilterOption("Full Shade", "full_shade")
-            ),
-            "watering" to listOf(
-                FilterOption("Low", "low"),
-                FilterOption("Medium", "medium"),
-                FilterOption("High", "high")
-            ),
-            "indoor" to listOf(
-                FilterOption("Indoor", "true"),
-                FilterOption("Outdoor", "false")
-            ),
-            "careLevel" to listOf(
-                FilterOption("Easy", "easy"),
-                FilterOption("Medium", "medium"),
-                FilterOption("Hard", "hard")
-            ),
-            "features" to listOf(
-                FilterOption("Flowering", "flowers"),
-                FilterOption("Fruits", "fruits"),
-                FilterOption("Non-Poisonous", "non_poisonous")
-            )
-        )
-    }
-
-    fun isFilterActive(key: String, value: Any): Boolean {
-        return _activeFilters.value[key] == value
-    }
-
     data class FilterOption(val displayName: String, val value: String)
 
     private fun updatePlantUIProperties(plantId: String?, waterNeeds: Float, sunlightNeeds: Float) {
@@ -268,28 +172,125 @@ class PlantViewModel @Inject constructor(
     fun getSunlightNeeds(plantId: String?): Float {
         return _sunlightNeeds.value[plantId] ?: 0.5f
     }
+    fun setSelectedPlant(plant: Plant) {
+        _selectedPlant.value = plant
+    }
 
-    private fun loadSamplePlants() {
-        if (myPlants.isEmpty()) {
-            val samplePlant = Plant(
-                id = "sample1",
-                scientificName = "Monstera Deliciosa",
-                commonName = "Swiss Cheese Plant",
-                description = "The Monstera deliciosa is a species of flowering plant native to tropical forests of southern Mexico, south to Panama.",
-                family = "Araceae",
-                genus = "Monstera",
-                careLevel = "Intermediate",
-                careGuides = listOf(
-                    "Water when the top 2-3 inches of soil feels dry",
-                    "Prefers bright, indirect light",
-                    "Enjoys high humidity but adapts to normal home conditions"
-                )
-            )
-
-            myPlants.add(samplePlant)
-            updatePlantUIProperties(samplePlant.id, 0.6f, 0.7f)
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
+        if (query.isNotEmpty()) {
+            val currentFilters = _activeFilters.value.toMutableMap()
+            currentFilters["query"] = query
+            _activeFilters.value = currentFilters
+        } else {
+            val currentFilters = _activeFilters.value.toMutableMap()
+            currentFilters.remove("query")
+            _activeFilters.value = currentFilters
         }
     }
-}
 
-data class FilterOption(val displayName: String, val value: String)
+    fun toggleFilter(key: String, value: Any) {
+        val currentFilters = _activeFilters.value.toMutableMap()
+        if (currentFilters[key] == value) {
+            currentFilters.remove(key)
+        } else {
+            currentFilters[key] = value
+        }
+        _activeFilters.value = currentFilters
+    }
+
+    fun clearFilters() {
+        _activeFilters.value = emptyMap()
+        _searchQuery.value = ""
+    }
+
+    fun isFilterActive(key: String, value: Any): Boolean {
+        return _activeFilters.value[key] == value
+    }
+
+    fun searchPlants() {
+        viewModelScope.launch {
+            _searchState.value = SearchState.Loading
+
+            try {
+                plantRepository.searchPlants(_activeFilters.value).collect { plants ->
+                    _searchResults.value = plants
+                    _searchState.value = SearchState.Success
+                }
+            } catch (e: Exception) {
+                _searchState.value = SearchState.Error(e.message ?: "Unknown error")
+            }
+        }
+    }
+
+    fun savePlant() {
+        viewModelScope.launch {
+            val plantToSave = _selectedPlant.value ?: return@launch
+            val plantId = plantToSave.id ?: return@launch
+
+            try {
+                val result = plantRepository.savePlant(plantId)
+                if (result.isSuccess) {
+                    getUserPlants()
+                }
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
+    }
+
+    fun getUserPlants() {
+        viewModelScope.launch {
+            plantRepository.getUserPlants().collect { plants ->
+                _userPlants.value = plants
+            }
+        }
+    }
+
+    fun deletePlant(plantId: String) {
+        viewModelScope.launch {
+            try {
+                val result = plantRepository.deletePlant(plantId)
+                if (result.isSuccess) {
+                    getUserPlants()
+                }
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
+    }
+
+    fun getFilterOptions(): Map<String, List<FilterOption>> {
+        return mapOf(
+            "sunlight" to listOf(
+                FilterOption("full sun", "full sun"),
+                FilterOption("partial shade", "Partial Shade"),
+                FilterOption("full shade", "Full Shade")
+            ),
+            "watering" to listOf(
+                FilterOption("low", "Low"),
+                FilterOption("medium", "Medium"),
+                FilterOption("high", "High")
+            ),
+            "indoor" to listOf(
+                FilterOption("true", "Indoor"),
+                FilterOption("false", "Outdoor")
+            ),
+            "careLevel" to listOf(
+                FilterOption("easy", "Easy"),
+                FilterOption("medium", "Medium"),
+                FilterOption("hard", "Hard")
+            ),
+            "size" to listOf(
+                FilterOption("small", "Small"),
+                FilterOption("medium", "Medium"),
+                FilterOption("large", "Large")
+            ),
+            "features" to listOf(
+                FilterOption("flowers", "Flowering"),
+                FilterOption("edible", "Edible"),
+                FilterOption("pet_safe", "Pet Safe")
+            )
+        )
+    }
+}

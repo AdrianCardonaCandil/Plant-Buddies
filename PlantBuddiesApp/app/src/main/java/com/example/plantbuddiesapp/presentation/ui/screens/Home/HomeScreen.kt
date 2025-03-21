@@ -40,6 +40,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -103,7 +104,7 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(50.dp))
 
             Image(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                painter = painterResource(id = R.mipmap.ic_launcher_foreground),
                 contentDescription = stringResource(R.string.app_name),
                 modifier = Modifier.size(200.dp)
             )
@@ -127,7 +128,6 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Search bar
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { viewModel.updateSearchQuery(it) },
@@ -196,8 +196,8 @@ fun HomeScreen(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = {
                     if (searchQuery.isNotEmpty() || activeFilters.isNotEmpty()) {
-                        navController.navigate("search_results")
                         focusManager.clearFocus()
+                        navController.navigate("search_results")
                     }
                 })
             )
@@ -206,8 +206,8 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = {
-                        navController.navigate("search_results")
                         focusManager.clearFocus()
+                        navController.navigate("search_results")
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -225,6 +225,7 @@ fun HomeScreen(
                     Text("Search Plants")
                 }
             }
+
             if (activeFilters.isNotEmpty()) {
                 ActiveFilterChips(
                     activeFilters = activeFilters,
@@ -245,7 +246,6 @@ fun HomeScreen(
                     viewModel = viewModel,
                     onFilterSelected = { key, value ->
                         viewModel.toggleFilter(key, value)
-                        // Keep focus to avoid keyboard popping up again
                     }
                 )
             }
@@ -345,9 +345,9 @@ fun ActiveFilterChips(
 
                 val valueDisplay = when (val value = activeFilters[key]) {
                     is String -> when(value) {
-                        "full_sun" -> "Full Sun"
-                        "partial_shade" -> "Partial Shade"
-                        "full_shade" -> "Full Shade"
+                        "full sun" -> "Full Sun"
+                        "partial shade" -> "Partial Shade"
+                        "full shade" -> "Full Shade"
                         "low" -> "Low Water"
                         "medium" -> "Medium Water"
                         "high" -> "High Water"
@@ -440,7 +440,7 @@ fun FiltersSection(
         }
 
         Spacer(modifier = Modifier.height(8.dp))
-        Divider()
+        HorizontalDivider()
         Spacer(modifier = Modifier.height(8.dp))
     }
 }
