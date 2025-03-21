@@ -23,6 +23,7 @@ import com.example.plantbuddiesapp.presentation.ui.screens.Home.PlantCameraScree
 import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.plantbuddiesapp.presentation.ui.screens.Common.BottomNavigationBar
+import com.example.plantbuddiesapp.presentation.viewmodel.MockAuthViewModel
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
@@ -39,6 +40,7 @@ fun AppNavigation() {
         "plant_information" -> false
         else -> true
     }
+    val fakeAuth: MockAuthViewModel = hiltViewModel()
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
