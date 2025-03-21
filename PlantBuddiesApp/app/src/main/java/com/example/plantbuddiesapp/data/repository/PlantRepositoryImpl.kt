@@ -7,6 +7,7 @@ import com.example.plantbuddiesapp.data.services.PlantService
 import com.example.plantbuddiesapp.domain.model.Plant
 import com.example.plantbuddiesapp.domain.repository.PlantRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -59,12 +60,7 @@ class PlantRepositoryImpl @Inject constructor(
                     Result.success(it.toDomain())
                 } ?: Result.failure(Exception("Empty response"))
             } else {
-                if (response.code() == 401) {
-                    tokenManager.clearToken()
-                    Result.failure(Exception("Authentication required"))
-                } else {
-                    Result.failure(Exception("Failed to save plant: ${response.code()}"))
-                }
+                Result.failure(Exception("Failed to save plant: ${response.code()}"))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -84,9 +80,6 @@ class PlantRepositoryImpl @Inject constructor(
                 val plants = response.body()?.map { it.toDomain() } ?: emptyList()
                 emit(plants)
             } else {
-                if (response.code() == 401) {
-                    tokenManager.clearToken()
-                }
                 emit(emptyList())
             }
         } catch (e: Exception) {
@@ -96,20 +89,13 @@ class PlantRepositoryImpl @Inject constructor(
 
     override suspend fun getPlant(plantId: String): Result<Plant> {
         return try {
-
             val response = plantService.getPlant(plantId)
-
             if (response.isSuccessful) {
                 response.body()?.let {
                     Result.success(it.toDomain())
                 } ?: Result.failure(Exception("Empty response"))
             } else {
-                if (response.code() == 401) {
-                    tokenManager.clearToken()
-                    Result.failure(Exception("Authentication required"))
-                } else {
-                    Result.failure(Exception("Failed to get plant: ${response.code()}"))
-                }
+                Result.failure(Exception("Failed to get plant: ${response.code()}"))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -125,17 +111,13 @@ class PlantRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                if (response.code() == 401) {
-                    tokenManager.clearToken()
-                    Result.failure(Exception("Authentication required"))
-                } else {
-                    Result.failure(Exception("Failed to delete plant: ${response.code()}"))
-                }
+                Result.failure(Exception("Failed to delete plant: ${response.code()}"))
             }
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
+
     override suspend fun searchPlants(filters: Map<String, Any>): Flow<List<Plant>> = flow {
         try {
             println("Search Filters: $filters")
@@ -164,13 +146,11 @@ class PlantRepositoryImpl @Inject constructor(
     private fun convertUriToFile(uri: Uri): File {
         val inputStream = context.contentResolver.openInputStream(uri)
         val file = File(context.cacheDir, "plant_image_${System.currentTimeMillis()}.jpg")
-
         inputStream?.use { input ->
             FileOutputStream(file).use { output ->
                 input.copyTo(output)
             }
         }
-
         return file
     }
 }
