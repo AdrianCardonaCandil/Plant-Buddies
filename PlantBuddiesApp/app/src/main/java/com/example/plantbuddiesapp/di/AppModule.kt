@@ -25,7 +25,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideTokenManager(@ApplicationContext firebaseAuth: FirebaseAuth): TokenManager {
+    fun provideTokenManager(firebaseAuth: FirebaseAuth): TokenManager {
         return TokenManager(firebaseAuth)
     }
 
