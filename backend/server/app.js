@@ -25,7 +25,7 @@ require('./middlewares/cors')(app)
 app.use('/api/auth', require('./routes/auth')(require('./models/User.model')))
 app.use('/api/plants', require('./routes/plants')(require('./models/Plant.model')))
 app.use('/api/model', require('./routes/model')(require('./models/Plant.model')))
-app.use('/api/users', require('./routes/users')(require('./models/User.model')))
+app.use('/api/users', require('./routes/users')(require('./models/User.model'), require('./models/Plant.model')))
 
 // Inicialización del servidor
 const PORT = process.env.PORT

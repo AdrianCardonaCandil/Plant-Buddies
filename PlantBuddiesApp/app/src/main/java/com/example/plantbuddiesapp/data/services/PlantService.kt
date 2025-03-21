@@ -29,7 +29,7 @@ interface PlantService {
     suspend fun deletePlant(
         @Header("Authorization") token: String,
         @Path("plantId") plantId: String
-    ): Response<Unit>
+    ): Response<PlantResponseDto>
 
     @POST("plants/")
     suspend fun searchPlants(

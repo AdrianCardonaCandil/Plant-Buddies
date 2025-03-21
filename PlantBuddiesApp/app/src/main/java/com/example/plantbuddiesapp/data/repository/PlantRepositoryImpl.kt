@@ -102,14 +102,16 @@ class PlantRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun deletePlant(plantId: String): Result<Unit> {
+    override suspend fun deletePlant(plantId: String): Result<Plant> {
         return try {
             val token = tokenManager.getToken() ?: return Result.failure(Exception("Not authenticated"))
 
             val response = plantService.deletePlant(token, plantId)
 
             if (response.isSuccessful) {
-                Result.success(Unit)
+                response.body()?.let {
+                    Result.success(it.plant.toDomain())
+                } ?: Result.failure(Exception("Empty response"))
             } else {
                 Result.failure(Exception("Failed to delete plant: ${response.code()}"))
             }

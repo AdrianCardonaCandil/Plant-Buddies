@@ -8,7 +8,7 @@ const router = express.Router();
 const User = require('../schemes/User.scheme');
 const tokenVerify = require('../middlewares/tokenVerify');
 
-module.exports = (UserModel) => {
+module.exports = (UserModel, PlantModel) => {
 
     /**
      * Obtiene las plantas de un usuario.
@@ -16,6 +16,7 @@ module.exports = (UserModel) => {
      */
 
     const userModel = new UserModel();
+    const plantModel = new PlantModel();
 
     router.get('/plantlist', tokenVerify, async (req, res) => {
         try {
@@ -42,10 +43,11 @@ module.exports = (UserModel) => {
         try {
             const user = User.parse({...req.user, ...req.body});
             if (user) {
-                const plants = await userModel.addPlant(user.uid, req.params.id)
+                await userModel.addPlant(user.uid, req.params.id)
+                plant = await plantModel.getPlantById(req.params.id)
                 return res.status(200).json({
                     message: 'Planta añadida correctamente.',
-                    plants: plants
+                    plant: plant
                 })
             }
         } catch (error) {
@@ -63,10 +65,11 @@ module.exports = (UserModel) => {
         try {
             const user = User.parse({...req.user, ...req.body});
             if (user) {
-                const plants = await userModel.removePlant(user.uid, req.params.id)
+                await userModel.removePlant(user.uid, req.params.id)
+                plant = await plantModel.getPlantById(req.params.id)
                 return res.status(200).json({
                     message: 'Planta eliminada correctamente.',
-                    plants: plants
+                    plant: plant
                 })
             }
         } catch (error) {

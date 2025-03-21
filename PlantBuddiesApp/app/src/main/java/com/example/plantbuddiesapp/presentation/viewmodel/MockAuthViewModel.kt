@@ -16,20 +16,47 @@ class MockAuthViewModel @Inject constructor(
 ) : ViewModel() {
     init {
         viewModelScope.launch {
-            val result = authRepository.register(
+            val result = authRepository.login(
                 email = "test@example.com",
-                name = "test",
                 password = "password"
             )
-
+            /*
             if (result.isSuccess) {
-                val result2 = plantRepository.savePlant("2320")
-                if (result2.isSuccess) {
-                    Log.d("MockAuthViewModel", "Plant saved")
-                } else {
-                    Log.e("MockAuthViewModel", "Failed to save plant")
+                // Ejemplo para coger las plantas del usuario
+                plantRepository.getUserPlants().collect { plants ->
+                    Log.d("MockAuthViewModel", "User plants: ${plants.size}")
                 }
+
+                // Ejemplo para añadir una planta al usuario
+                val response2 = plantRepository.savePlant("2325") // id de la planta: 2320, 2321, etc
+                if (response2.isSuccess) {
+                    val plant = response2.getOrNull()
+                    Log.d("MockAuthViewModel", "Plant added: $plant")
+                } else {
+                    Log.e("MockAuthViewModel", "Error adding plant", response2.exceptionOrNull())
+                }
+
+                // Ejemplo para eliminar una planta del usuario
+                val response3 = plantRepository.deletePlant("2325") // id de la planta: 2320, 2321, etc
+                if (response3.isSuccess) {
+                    val plant = response3.getOrNull()
+                    Log.d("MockAuthViewModel", "Plant deleted: $plant")
+                } else {
+                    Log.e("MockAuthViewModel", "Error deleting plant", response3.exceptionOrNull())
+                }
+
+                // Ejemplo para buscar una planta por id
+                val response4 = plantRepository.getPlant("2325") // id de la planta: 2320, 2321, etc
+                if (response4.isSuccess) {
+                    val plant = response4.getOrNull()
+                    Log.d("MockAuthViewModel", "Plant found: $plant")
+                } else {
+                    Log.e("MockAuthViewModel", "Error finding plant", response4.exceptionOrNull())
+                }
+            } else {
+                Log.e("MockAuthViewModel", "Error logging in user", result.exceptionOrNull())
             }
+            */
         }
     }
 }
