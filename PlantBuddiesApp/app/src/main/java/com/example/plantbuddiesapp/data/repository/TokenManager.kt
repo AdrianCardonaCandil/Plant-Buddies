@@ -30,18 +30,15 @@ class TokenManager @Inject constructor(
     }
 
     /**
-     * Método que permite obtener el token de autenticación del usuario actual.
+     * Método que obtiene el token de autenticación del usuario actual.
      * @param forceRefresh Indica si se debe forzar la actualización del token.
-     * @return Flow que emite el token de autenticación del usuario actual.
+     * @return El token de autenticación del usuario actual o null si no se puede obtener.
      */
-    fun getToken(forceRefresh: Boolean = true): Flow<String?> = flow {
-        _currentUser.value?.let { user ->
-            try {
-                val tokenResult = user.getIdToken(forceRefresh).await()
-                emit(tokenResult.token)
-            } catch (e: Exception) {
-                emit(null)
-            }
-        } ?: emit(null)
+    suspend fun getToken(forceRefresh: Boolean = true): String? {
+        return try {
+            _currentUser.value?.getIdToken(forceRefresh)?.await()?.token
+        } catch (e: Exception) {
+            null
+        }
     }
 }

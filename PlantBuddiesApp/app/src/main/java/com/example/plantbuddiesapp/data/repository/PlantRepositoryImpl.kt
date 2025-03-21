@@ -49,41 +49,38 @@ class PlantRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun savePlant(plantId: String): Flow<Result<Plant>> = flow {
-        try {
-            tokenManager.getToken().collect { token ->
-                if (token == null) {
-                    emit(Result.failure(Exception("Not authenticated")))
-                    return@collect
-                }
-                val response = plantService.savePlant(token, plantId)
-                if (response.isSuccessful) {
-                    response.body()?.let {
-                        emit(Result.success(it.toDomain()))
-                    } ?: emit(Result.failure(Exception("Empty response")))
-                } else {
-                    emit(Result.failure(Exception("Failed to save plant: ${response.code()}")))
-                }
+    override suspend fun savePlant(plantId: String): Result<Plant> {
+        return try {
+            val token = tokenManager.getToken() ?: return Result.failure(Exception("Not authenticated"))
+
+            val response = plantService.savePlant(token, plantId)
+
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Result.success(it.toDomain())
+                } ?: Result.failure(Exception("Empty response"))
+            } else {
+                Result.failure(Exception("Failed to save plant: ${response.code()}"))
             }
         } catch (e: Exception) {
-            emit(Result.failure(e))
+            Result.failure(e)
         }
     }
 
     override suspend fun getUserPlants(): Flow<List<Plant>> = flow {
         try {
-            tokenManager.getToken().collect { token ->
-                if (token == null) {
-                    emit(emptyList())
-                    return@collect
-                }
-                val response = plantService.getUserPlants(token)
-                if (response.isSuccessful) {
-                    val plants = response.body()?.map { it.toDomain() } ?: emptyList()
-                    emit(plants)
-                } else {
-                    emit(emptyList())
-                }
+            val token = tokenManager.getToken()
+            if (token == null) {
+                emit(emptyList())
+                return@flow
+            }
+
+            val response = plantService.getUserPlants(token)
+            if (response.isSuccessful) {
+                val plants = response.body()?.map { it.toDomain() } ?: emptyList()
+                emit(plants)
+            } else {
+                emit(emptyList())
             }
         } catch (e: Exception) {
             emit(emptyList())
@@ -105,24 +102,22 @@ class PlantRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun deletePlant(plantId: String): Flow<Result<Unit>> = flow {
-        try {
-            tokenManager.getToken().collect { token ->
-                if (token == null) {
-                    emit(Result.failure(Exception("Not authenticated")))
-                    return@collect
-                }
-                val response = plantService.deletePlant(token, plantId)
-                if (response.isSuccessful) {
-                    emit(Result.success(Unit))
-                } else {
-                    emit(Result.failure(Exception("Failed to delete plant: ${response.code()}")))
-                }
+    override suspend fun deletePlant(plantId: String): Result<Unit> {
+        return try {
+            val token = tokenManager.getToken() ?: return Result.failure(Exception("Not authenticated"))
+
+            val response = plantService.deletePlant(token, plantId)
+
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Failed to delete plant: ${response.code()}"))
             }
         } catch (e: Exception) {
-            emit(Result.failure(e))
+            Result.failure(e)
         }
     }
+
     override suspend fun searchPlants(filters: Map<String, Any>): Flow<List<Plant>> = flow {
         try {
             val response = plantService.searchPlants(filters)
