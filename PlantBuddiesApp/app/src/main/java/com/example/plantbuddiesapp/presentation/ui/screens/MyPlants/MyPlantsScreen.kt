@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,11 +16,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -38,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -92,7 +99,7 @@ fun EmptyPlantsView() {
 
         // Use a placeholder image resource that should exist in your project
         Image(
-            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+            painter = painterResource(id = R.drawable.plants_empty_photo),
             contentDescription = stringResource(R.string.app_name),
             modifier = Modifier.size(200.dp)
         )
@@ -127,48 +134,99 @@ fun PlantsList(
     onDeletePlant: (Plant) -> Unit,
     viewModel: PlantViewModel
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Column(
+
+    var isGridView by remember { mutableStateOf(false) }
+
+    Column {
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.End
         ) {
-            plants.forEach { plant ->
-                PlantCard(
-                    plant = plant,
-                    onDelete = { onDeletePlant(plant) },
-                    onClick = { onPlantClick(plant) },
-                    viewModel = viewModel
+            IconButton(
+                onClick = { isGridView = !isGridView }
+            ) {
+                Icon(
+                    imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
+                    contentDescription = if (isGridView) "Switch to List" else "Switch to Grid",
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
-
-            // Add some space at the bottom for better scrolling experience
-            Spacer(modifier = Modifier.height(80.dp))
         }
+
+        if (isGridView) {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                content = {
+                    items(plants) { plant ->
+                        PlantCard(
+                            plant = plant,
+                            onDelete = { onDeletePlant(plant) },
+                            onClick = { onPlantClick(plant) },
+                            viewModel = viewModel,
+                            isGridView = true
+                        )
+                    }
+                }
+            )
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                plants.forEach { plant ->
+                    PlantCard(
+                        plant = plant,
+                        onDelete = { onDeletePlant(plant) },
+                        onClick = { onPlantClick(plant) },
+                        viewModel = viewModel,
+                        isGridView = false
+                    )
+                }
+                Spacer(modifier = Modifier.height(80.dp))
+            }
+        }
+
     }
 }
 
 @Composable
-fun Chip(label: String, modifier: Modifier = Modifier) {
+fun Chip(label: String, modifier: Modifier = Modifier, isGridView: Boolean = false) {
+
+    val backgroundColor = if (isGridView) {
+        MaterialTheme.colorScheme.surface
+    } else {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+    }
+
+    val contentColor = if (isGridView) {
+        MaterialTheme.colorScheme.onSurface
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .background(
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                color = backgroundColor,
                 shape = RoundedCornerShape(12.dp)
             )
             .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
         Text(
             text = label,
-            color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.bodySmall
+            color = contentColor,
+            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
         )
     }
 }
@@ -178,7 +236,8 @@ fun PlantCard(
     plant: Plant,
     onDelete: () -> Unit,
     onClick: () -> Unit,
-    viewModel: PlantViewModel
+    viewModel: PlantViewModel,
+    isGridView: Boolean = false
 ) {
     var visible by remember { mutableStateOf(false) }
 
@@ -204,80 +263,129 @@ fun PlantCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.surface)
-                .padding(16.dp)
-        ) {
-            plant.imageUri?.let { uri ->
-                Image(
-                    painter = rememberAsyncImagePainter(model = uri),
-                    contentDescription = plant.commonName,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Chip(
-                    label = "Care: ${plant.careLevel ?: "Medium"}",
-                    modifier = Modifier.weight(1f)
-                )
-
-                Chip(
-                    label = "Water: ${(waterNeeds * 10).toInt()}L",
-                    modifier = Modifier.weight(1f)
-                )
-
-                Chip(
-                    label = "Sun: ${(sunlightNeeds * 10).toInt()}hrs",
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            plant.commonName?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = plant.description ?: "No description available",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 3
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            IconButton(
-                onClick = onDelete,
+        if (isGridView) {
+            Box(
                 modifier = Modifier
-                    .align(Alignment.End)
-                    .size(36.dp)
-                    .padding(4.dp)
+                    .fillMaxSize()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(20.dp))
             ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete Plant",
-                    tint = MaterialTheme.colorScheme.error
+                plant.imageUri?.let { uri ->
+                    Image(
+                        painter = rememberAsyncImagePainter(model = uri),
+                        contentDescription = plant.commonName,
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.3f))
                 )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    IconButton(
+                        onClick = onDelete,
+                        modifier = Modifier
+                            .align(Alignment.End)
+                            .size(32.dp)
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), RoundedCornerShape(50))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete Plant",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+
+                    Column {
+                        plant.commonName?.let {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(16.dp)
+            ) {
+                plant.imageUri?.let { uri ->
+                    Image(
+                        painter = rememberAsyncImagePainter(model = uri),
+                        contentDescription = plant.commonName,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(16.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Chip(label = "Care: ${plant.careLevel ?: "Medium"}", modifier = Modifier.weight(1f))
+                    Chip(label = "Water: ${(waterNeeds*10).toInt()}L", modifier = Modifier.weight(1f))
+                    Chip(label = "Sun: ${(sunlightNeeds*10).toInt()}hrs", modifier = Modifier.weight(1f))
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                plant.commonName?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = if (isGridView) 16.sp else 18.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = plant.description ?: "No description available",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 3
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .size(36.dp)
+                        .padding(4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete Plant",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+
             }
         }
     }
