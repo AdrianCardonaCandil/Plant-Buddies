@@ -1,31 +1,47 @@
 package com.example.plantbuddiesapp.data.repository
 
-import android.content.Context
-import android.content.SharedPreferences
-import dagger.hilt.android.qualifiers.ApplicationContext
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Clase que maneja el usuario actual de la aplicación mediante el SDK de Firebase.
+ * @property firebaseAuth Instancia de FirebaseAuth.
+ * */
+
 @Singleton
 class TokenManager @Inject constructor(
-    @ApplicationContext context: Context
+    private val firebaseAuth: FirebaseAuth
 ) {
-    private val prefs: SharedPreferences =
-        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+    private val _currentUser = MutableStateFlow(firebaseAuth.currentUser)
+    val currentUser: StateFlow<FirebaseUser?> = _currentUser.asStateFlow()
 
-    fun saveToken(token: String) {
-        prefs.edit().putString(KEY_TOKEN, token).apply()
-    }
-    fun getToken(): String? {
-        return prefs.getString(KEY_TOKEN, null)
-    }
-
-    fun clearToken() {
-        prefs.edit().remove(KEY_TOKEN).apply()
+    init {
+        firebaseAuth.addAuthStateListener { auth ->
+            _currentUser.value = auth.currentUser
+        }
     }
 
-    companion object {
-        private const val PREF_NAME = "auth_prefs"
-        private const val KEY_TOKEN = "auth_token"
+    /**
+     * Método que permite obtener el token de autenticación del usuario actual.
+     * @param forceRefresh Indica si se debe forzar la actualización del token.
+     * @return Flow que emite el token de autenticación del usuario actual.
+     */
+    fun getToken(forceRefresh: Boolean = true): Flow<String?> = flow {
+        _currentUser.value?.let { user ->
+            try {
+                val tokenResult = user.getIdToken(forceRefresh).await()
+                emit(tokenResult.token)
+            } catch (e: Exception) {
+                emit(null)
+            }
+        } ?: emit(null)
     }
 }

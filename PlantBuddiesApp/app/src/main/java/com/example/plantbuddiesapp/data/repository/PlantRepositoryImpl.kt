@@ -7,6 +7,7 @@ import com.example.plantbuddiesapp.data.services.PlantService
 import com.example.plantbuddiesapp.domain.model.Plant
 import com.example.plantbuddiesapp.domain.repository.PlantRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -48,46 +49,41 @@ class PlantRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun savePlant(plantId: String): Result<Plant> {
-        return try {
-            val token = tokenManager.getToken() ?: return Result.failure(Exception("Not authenticated"))
-
-            val response = plantService.savePlant(token, plantId)
-
-            if (response.isSuccessful) {
-                response.body()?.let {
-                    Result.success(it.toDomain())
-                } ?: Result.failure(Exception("Empty response"))
-            } else {
-                if (response.code() == 401) {
-                    tokenManager.clearToken()
-                    Result.failure(Exception("Authentication required"))
+    override suspend fun savePlant(plantId: String): Flow<Result<Plant>> = flow {
+        try {
+            tokenManager.getToken().collect { token ->
+                if (token == null) {
+                    emit(Result.failure(Exception("Not authenticated")))
+                    return@collect
+                }
+                val response = plantService.savePlant(token, plantId)
+                if (response.isSuccessful) {
+                    response.body()?.let {
+                        emit(Result.success(it.toDomain()))
+                    } ?: emit(Result.failure(Exception("Empty response")))
                 } else {
-                    Result.failure(Exception("Failed to save plant: ${response.code()}"))
+                    emit(Result.failure(Exception("Failed to save plant: ${response.code()}")))
                 }
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            emit(Result.failure(e))
         }
     }
 
     override suspend fun getUserPlants(): Flow<List<Plant>> = flow {
         try {
-            val token = tokenManager.getToken()
-            if (token == null) {
-                emit(emptyList())
-                return@flow
-            }
-
-            val response = plantService.getUserPlants(token)
-            if (response.isSuccessful) {
-                val plants = response.body()?.map { it.toDomain() } ?: emptyList()
-                emit(plants)
-            } else {
-                if (response.code() == 401) {
-                    tokenManager.clearToken()
+            tokenManager.getToken().collect { token ->
+                if (token == null) {
+                    emit(emptyList())
+                    return@collect
                 }
-                emit(emptyList())
+                val response = plantService.getUserPlants(token)
+                if (response.isSuccessful) {
+                    val plants = response.body()?.map { it.toDomain() } ?: emptyList()
+                    emit(plants)
+                } else {
+                    emit(emptyList())
+                }
             }
         } catch (e: Exception) {
             emit(emptyList())
@@ -96,44 +92,35 @@ class PlantRepositoryImpl @Inject constructor(
 
     override suspend fun getPlant(plantId: String): Result<Plant> {
         return try {
-
             val response = plantService.getPlant(plantId)
-
             if (response.isSuccessful) {
                 response.body()?.let {
                     Result.success(it.toDomain())
                 } ?: Result.failure(Exception("Empty response"))
             } else {
-                if (response.code() == 401) {
-                    tokenManager.clearToken()
-                    Result.failure(Exception("Authentication required"))
-                } else {
-                    Result.failure(Exception("Failed to get plant: ${response.code()}"))
-                }
+                Result.failure(Exception("Failed to get plant: ${response.code()}"))
             }
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun deletePlant(plantId: String): Result<Unit> {
-        return try {
-            val token = tokenManager.getToken() ?: return Result.failure(Exception("Not authenticated"))
-
-            val response = plantService.deletePlant(token, plantId)
-
-            if (response.isSuccessful) {
-                Result.success(Unit)
-            } else {
-                if (response.code() == 401) {
-                    tokenManager.clearToken()
-                    Result.failure(Exception("Authentication required"))
+    override suspend fun deletePlant(plantId: String): Flow<Result<Unit>> = flow {
+        try {
+            tokenManager.getToken().collect { token ->
+                if (token == null) {
+                    emit(Result.failure(Exception("Not authenticated")))
+                    return@collect
+                }
+                val response = plantService.deletePlant(token, plantId)
+                if (response.isSuccessful) {
+                    emit(Result.success(Unit))
                 } else {
-                    Result.failure(Exception("Failed to delete plant: ${response.code()}"))
+                    emit(Result.failure(Exception("Failed to delete plant: ${response.code()}")))
                 }
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            emit(Result.failure(e))
         }
     }
     override suspend fun searchPlants(filters: Map<String, Any>): Flow<List<Plant>> = flow {
@@ -153,13 +140,11 @@ class PlantRepositoryImpl @Inject constructor(
     private fun convertUriToFile(uri: Uri): File {
         val inputStream = context.contentResolver.openInputStream(uri)
         val file = File(context.cacheDir, "plant_image_${System.currentTimeMillis()}.jpg")
-
         inputStream?.use { input ->
             FileOutputStream(file).use { output ->
                 input.copyTo(output)
             }
         }
-
         return file
     }
 }

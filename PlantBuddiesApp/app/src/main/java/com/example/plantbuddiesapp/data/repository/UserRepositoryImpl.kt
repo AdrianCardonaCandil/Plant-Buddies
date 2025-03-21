@@ -13,5 +13,4 @@ class UserRepositoryImpl @Inject constructor(
     private val userService: UserService,
     private val tokenManager: TokenManager
 ) : UserRepository {
-
 }

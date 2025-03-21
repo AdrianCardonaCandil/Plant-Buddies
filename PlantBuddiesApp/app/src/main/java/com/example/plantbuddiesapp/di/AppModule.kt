@@ -11,6 +11,7 @@ import com.example.plantbuddiesapp.data.services.UserService
 import com.example.plantbuddiesapp.domain.repository.AuthRepository
 import com.example.plantbuddiesapp.domain.repository.PlantRepository
 import com.example.plantbuddiesapp.domain.repository.UserRepository
+import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,8 +25,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideTokenManager(@ApplicationContext context: Context): TokenManager {
-        return TokenManager(context)
+    fun provideTokenManager(@ApplicationContext firebaseAuth: FirebaseAuth): TokenManager {
+        return TokenManager(firebaseAuth)
     }
 
     @Provides
@@ -34,9 +35,10 @@ object AppModule {
         @ApplicationContext context: Context,
         authService: AuthService,
         userService: UserService,
-        tokenManager: TokenManager
+        tokenManager: TokenManager,
+        firebaseAuth: FirebaseAuth
     ): AuthRepository {
-        return AuthRepositoryImpl(context, authService, userService, tokenManager)
+        return AuthRepositoryImpl(context, authService, userService, tokenManager, firebaseAuth)
     }
 
     @Provides

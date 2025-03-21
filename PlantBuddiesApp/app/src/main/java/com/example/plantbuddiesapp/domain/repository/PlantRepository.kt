@@ -6,10 +6,10 @@ import kotlinx.coroutines.flow.Flow
 
 interface PlantRepository {
     suspend fun identifyPlant(imageUri: Uri): Result<Plant>
-    suspend fun savePlant(plantId: String): Result<Plant>
+    suspend fun savePlant(plantId: String): Flow<Result<Plant>>
     suspend fun getUserPlants(): Flow<List<Plant>>
     suspend fun getPlant(plantId: String): Result<Plant>
-    suspend fun deletePlant(plantId: String): Result<Unit>
+    suspend fun deletePlant(plantId: String): Flow<Result<Unit>>
     suspend fun searchPlants(filters: Map<String,Any>):Flow<List<Plant>>
 
 }
