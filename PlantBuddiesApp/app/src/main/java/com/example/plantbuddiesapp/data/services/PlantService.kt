@@ -17,13 +17,13 @@ interface PlantService {
     @GET("users/plantlist")
     suspend fun getUserPlants(
         @Header("Authorization") token: String
-    ): Response<List<PlantDto>>
+    ): Response<PlantListResponseDto>
 
     @POST("users/plantlist/{plantId}")
     suspend fun savePlant(
         @Header("Authorization") token: String,
         @Path("plantId") plantId: String
-    ): Response<PlantDto>
+    ): Response<PlantResponseDto>
 
     @DELETE("users/plantlist/{plantId}")
     suspend fun deletePlant(
@@ -39,5 +39,5 @@ interface PlantService {
     @GET("plants/{plantId}")
     suspend fun getPlant(
         @Path("plantId") plantId: String
-    ): Response<PlantDto>
+    ): Response<PlantResponseDto>
 }

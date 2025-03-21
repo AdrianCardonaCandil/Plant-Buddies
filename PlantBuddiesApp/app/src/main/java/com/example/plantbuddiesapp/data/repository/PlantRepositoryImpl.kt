@@ -57,7 +57,7 @@ class PlantRepositoryImpl @Inject constructor(
 
             if (response.isSuccessful) {
                 response.body()?.let {
-                    Result.success(it.toDomain())
+                    Result.success(it.plant.toDomain())
                 } ?: Result.failure(Exception("Empty response"))
             } else {
                 Result.failure(Exception("Failed to save plant: ${response.code()}"))
@@ -77,7 +77,7 @@ class PlantRepositoryImpl @Inject constructor(
 
             val response = plantService.getUserPlants(token)
             if (response.isSuccessful) {
-                val plants = response.body()?.map { it.toDomain() } ?: emptyList()
+                val plants = response.body()?.plants?.map { it.toDomain() } ?: emptyList()
                 emit(plants)
             } else {
                 emit(emptyList())
@@ -92,7 +92,7 @@ class PlantRepositoryImpl @Inject constructor(
             val response = plantService.getPlant(plantId)
             if (response.isSuccessful) {
                 response.body()?.let {
-                    Result.success(it.toDomain())
+                    Result.success(it.plant.toDomain())
                 } ?: Result.failure(Exception("Empty response"))
             } else {
                 Result.failure(Exception("Failed to get plant: ${response.code()}"))

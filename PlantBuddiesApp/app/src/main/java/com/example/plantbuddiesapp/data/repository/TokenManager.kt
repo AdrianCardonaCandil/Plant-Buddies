@@ -36,7 +36,7 @@ class TokenManager @Inject constructor(
      */
     suspend fun getToken(forceRefresh: Boolean = true): String? {
         return try {
-            _currentUser.value?.getIdToken(forceRefresh)?.await()?.token
+            _currentUser.value?.getIdToken(forceRefresh)?.await()?.token?.let { "Bearer $it" }
         } catch (e: Exception) {
             null
         }
