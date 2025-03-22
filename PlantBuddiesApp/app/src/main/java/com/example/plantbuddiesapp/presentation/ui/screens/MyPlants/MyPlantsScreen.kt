@@ -26,12 +26,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -240,6 +242,7 @@ fun PlantCard(
     isGridView: Boolean = false
 ) {
     var visible by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { visible = true }
 
@@ -293,7 +296,7 @@ fun PlantCard(
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     IconButton(
-                        onClick = onDelete,
+                        onClick = { showDeleteDialog = true },
                         modifier = Modifier
                             .align(Alignment.End)
                             .size(32.dp)
@@ -373,7 +376,7 @@ fun PlantCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 IconButton(
-                    onClick = onDelete,
+                    onClick = { showDeleteDialog = true },
                     modifier = Modifier
                         .align(Alignment.End)
                         .size(36.dp)
@@ -385,8 +388,37 @@ fun PlantCard(
                         tint = MaterialTheme.colorScheme.error
                     )
                 }
-
             }
         }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDelete()
+                        showDeleteDialog = false
+                    }
+                ) {
+                    Text(
+                        text = "Delete",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDeleteDialog = false }
+                ) {
+                    Text(text = "Cancel")
+                }
+            },
+            title = { Text(text = "Delete Plant?") },
+            text = {
+                Text(text = "Are you sure you want to delete ${plant.commonName ?: "this plant"}?")
+            }
+        )
     }
 }
