@@ -11,5 +11,5 @@ interface PlantRepository {
     suspend fun getPlant(plantId: String): Result<Plant>
     suspend fun deletePlant(plantId: String): Result<Plant>
     suspend fun searchPlants(filters: Map<String,Any>):Flow<List<Plant>>
-
+    suspend fun plantExists(plantId: String): Result<Boolean>
 }
