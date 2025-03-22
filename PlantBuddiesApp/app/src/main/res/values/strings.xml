@@ -22,9 +22,14 @@
 
 
     // Strings for the MyPlantsScreen
-    <string name="plants_empty_title">You don\'t have any plants</string>
-    <string name="plants_empty_description">Add your first plant and start caring for it.</string>
+    <string name="plants_empty_title">No Plants Yet</string>
+    <string name="plants_empty_description">Add your first plant by identifying one with the camera!</string>
     <string name="plants_empty_button">Add plants</string>
     <string name="add_icon_description">Add</string>
+    <string name="delete_icon_description">Delete Plant</string>
+    <string name="confirmation_message_title">Delete Plant?</string>
+    <string name="switch_to_list">Switch to List</string>
+    <string name="switch_to_grid">Switch to Grid</string>
+    <string name="delete">Delete</string>
 
 </resources>

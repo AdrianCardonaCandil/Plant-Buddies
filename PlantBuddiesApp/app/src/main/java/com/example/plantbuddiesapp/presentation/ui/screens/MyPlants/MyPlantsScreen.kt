@@ -4,8 +4,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -68,9 +68,7 @@ fun MyPlantsScreen(
     val plants = viewModel.myPlants
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
     ) {
         if (plants.isEmpty()) {
             EmptyPlantsView()
@@ -91,15 +89,12 @@ fun MyPlantsScreen(
 @Composable
 fun EmptyPlantsView() {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp),
+        modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Spacer(modifier = Modifier.height(50.dp))
 
-        // Use a placeholder image resource that should exist in your project
         Image(
             painter = painterResource(id = R.drawable.plants_empty_photo),
             contentDescription = stringResource(R.string.app_name),
@@ -109,7 +104,7 @@ fun EmptyPlantsView() {
         Spacer(modifier = Modifier.height(30.dp))
 
         Text(
-            text = "No Plants Yet",
+            text = stringResource(R.string.plants_empty_title),
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
@@ -118,7 +113,7 @@ fun EmptyPlantsView() {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Add your first plant by identifying one with the camera!",
+            text = stringResource(R.string.plants_empty_description),
             fontSize = 16.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -136,7 +131,6 @@ fun PlantsList(
     onDeletePlant: (Plant) -> Unit,
     viewModel: PlantViewModel
 ) {
-
     var isGridView by remember { mutableStateOf(false) }
 
     Column {
@@ -151,7 +145,8 @@ fun PlantsList(
             ) {
                 Icon(
                     imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
-                    contentDescription = if (isGridView) "Switch to List" else "Switch to Grid",
+                    contentDescription = if (isGridView) stringResource(R.string.switch_to_list)
+                        else stringResource(R.string.switch_to_grid),
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
@@ -197,13 +192,11 @@ fun PlantsList(
                 Spacer(modifier = Modifier.height(80.dp))
             }
         }
-
     }
 }
 
 @Composable
 fun Chip(label: String, modifier: Modifier = Modifier, isGridView: Boolean = false) {
-
     val backgroundColor = if (isGridView) {
         MaterialTheme.colorScheme.surface
     } else {
@@ -219,10 +212,7 @@ fun Chip(label: String, modifier: Modifier = Modifier, isGridView: Boolean = fal
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .background(
-                color = backgroundColor,
-                shape = RoundedCornerShape(12.dp)
-            )
+            .background(color = backgroundColor, shape = RoundedCornerShape(12.dp))
             .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
         Text(
@@ -269,16 +259,14 @@ fun PlantCard(
         if (isGridView) {
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .height(200.dp)
+                    .fillMaxSize().height(200.dp)
                     .clip(RoundedCornerShape(20.dp))
             ) {
                 plant.imageUri?.let { uri ->
                     Image(
                         painter = rememberAsyncImagePainter(model = uri),
                         contentDescription = plant.commonName,
-                        modifier = Modifier
-                            .fillMaxSize(),
+                        modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
                 }
@@ -290,9 +278,7 @@ fun PlantCard(
                 )
 
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(12.dp),
+                    modifier = Modifier.fillMaxSize().padding(12.dp),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     IconButton(
@@ -300,11 +286,14 @@ fun PlantCard(
                         modifier = Modifier
                             .align(Alignment.End)
                             .size(32.dp)
-                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), RoundedCornerShape(50))
+                            .background(
+                                MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                                RoundedCornerShape(50)
+                            )
                     ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete Plant",
+                            contentDescription = stringResource(R.string.delete_icon_description),
                             tint = MaterialTheme.colorScheme.error
                         )
                     }
@@ -313,6 +302,11 @@ fun PlantCard(
                         plant.commonName?.let {
                             Text(
                                 text = it,
+                                modifier = Modifier
+                                    .background(
+                                        MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                                        shape = RoundedCornerShape(8.dp))
+                                    .padding(horizontal = 8.dp, vertical = 4.dp),
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
@@ -384,7 +378,7 @@ fun PlantCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete Plant",
+                        contentDescription = stringResource(R.string.delete_icon_description),
                         tint = MaterialTheme.colorScheme.error
                     )
                 }
@@ -401,21 +395,17 @@ fun PlantCard(
                         onDelete()
                         showDeleteDialog = false
                     }
-                ) {
-                    Text(
-                        text = "Delete",
-                        color = MaterialTheme.colorScheme.error
-                    )
+                ) { Text(text = stringResource(R.string.delete),
+                    color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { showDeleteDialog = false }
-                ) {
-                    Text(text = "Cancel")
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(text = stringResource(R.string.cancel))
                 }
             },
-            title = { Text(text = "Delete Plant?") },
+            title = { Text(text = stringResource(R.string.confirmation_message_title),
+                fontWeight = FontWeight.Bold) },
             text = {
                 Text(text = "Are you sure you want to delete ${plant.commonName ?: "this plant"}?")
             }
