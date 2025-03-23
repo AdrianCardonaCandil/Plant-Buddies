@@ -26,11 +26,21 @@ class PlantService {
     getPlants = async (filters) => {
         try {
             let query = this.db.collection(this.collection);
+            let commonName = null;
             for (const [key, value] of Object.entries(filters)) {
+                if (key === 'commonName') {
+                    commonName = value;
+                    continue;
+                }
                 query = query.where(key, '==', value);
             }
             const snapshot = await query.get();
             const plants = snapshot.docs.map(doc => Plant.parse(doc.data()));
+            if (commonName) {
+                return plants.filter(plant => 
+                    plant.commonName.toLowerCase().includes(commonName.toLowerCase()) ||
+                    plant.scientificName.toLowerCase().includes(commonName.toLowerCase()))
+            }
             return plants;
 
         } catch (error) {
