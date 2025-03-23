@@ -62,13 +62,11 @@ class PlantViewModel @Inject constructor(
             _searchQuery
                 .debounce(300) // 300ms debounce
                 .collectLatest { query ->
-                    if (query.length >= 2) {
+                    if (query.isNotEmpty() || _activeFilters.value.isNotEmpty()) {
                         searchPlants()
-                    } else if (query.isEmpty() && _activeFilters.value.isEmpty()) {
+                    } else {
                         _searchResults.value = emptyList()
                         _searchState.value = SearchState.Initial
-                    } else if (query.isEmpty() && _activeFilters.value.isNotEmpty()) {
-                        searchPlants()
                     }
                 }
         }
@@ -178,15 +176,15 @@ class PlantViewModel @Inject constructor(
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
+        val currentFilters = _activeFilters.value.toMutableMap()
+
         if (query.isNotEmpty()) {
-            val currentFilters = _activeFilters.value.toMutableMap()
-            currentFilters["query"] = query
-            _activeFilters.value = currentFilters
+            currentFilters["commonName"] = query
         } else {
-            val currentFilters = _activeFilters.value.toMutableMap()
-            currentFilters.remove("query")
-            _activeFilters.value = currentFilters
+            currentFilters.remove("commonName")
         }
+
+        _activeFilters.value = currentFilters
     }
 
     fun toggleFilter(key: String, value: Any) {
@@ -213,9 +211,20 @@ class PlantViewModel @Inject constructor(
             _searchState.value = SearchState.Loading
 
             try {
-                plantRepository.searchPlants(_activeFilters.value).collect { plants ->
+
+                val filters = _activeFilters.value.toMutableMap()
+                if (_searchQuery.value.isNotEmpty()) {
+                    filters["commonName"] = _searchQuery.value
+                }
+
+                plantRepository.searchPlants(filters).collect { plants ->
                     _searchResults.value = plants
-                    _searchState.value = SearchState.Success
+
+                    if (plants.isEmpty()) {
+                        _searchState.value = SearchState.Empty("No plants found matching your criteria")
+                    } else {
+                        _searchState.value = SearchState.Success
+                    }
                 }
             } catch (e: Exception) {
                 _searchState.value = SearchState.Error(e.message ?: "Unknown error")
@@ -263,34 +272,24 @@ class PlantViewModel @Inject constructor(
     fun getFilterOptions(): Map<String, List<FilterOption>> {
         return mapOf(
             "sunlight" to listOf(
-                FilterOption("full sun", "full sun"),
-                FilterOption("partial shade", "Partial Shade"),
-                FilterOption("full shade", "Full Shade")
+                FilterOption("Full Sun", "full sun"),
+                FilterOption("Partial Shade", "partial shade"),
+                FilterOption("Full Shade", "full shade")
             ),
             "watering" to listOf(
-                FilterOption("low", "Low"),
-                FilterOption("medium", "Medium"),
-                FilterOption("high", "High")
+                FilterOption("Low", "Low"),
+                FilterOption("Medium", "Medium"),
+                FilterOption("High", "High")
             ),
             "indoor" to listOf(
-                FilterOption("true", "Indoor"),
-                FilterOption("false", "Outdoor")
+                FilterOption("Indoor", "true"),
+                FilterOption("Outdoor", "false")
             ),
             "careLevel" to listOf(
-                FilterOption("easy", "Easy"),
-                FilterOption("medium", "Medium"),
-                FilterOption("hard", "Hard")
+                FilterOption("Easy", "Easy"),
+                FilterOption("Medium", "Medium"),
+                FilterOption("Hard", "Hard")
             ),
-            "size" to listOf(
-                FilterOption("small", "Small"),
-                FilterOption("medium", "Medium"),
-                FilterOption("large", "Large")
-            ),
-            "features" to listOf(
-                FilterOption("flowers", "Flowering"),
-                FilterOption("edible", "Edible"),
-                FilterOption("pet_safe", "Pet Safe")
-            )
         )
     }
 }

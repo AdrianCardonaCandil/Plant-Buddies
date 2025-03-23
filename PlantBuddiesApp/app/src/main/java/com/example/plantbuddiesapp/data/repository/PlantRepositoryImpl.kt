@@ -123,7 +123,13 @@ class PlantRepositoryImpl @Inject constructor(
     override suspend fun searchPlants(filters: Map<String, Any>): Flow<List<Plant>> = flow {
         try {
             println("Search Filters: $filters")
-            val stringFilters = filters.mapValues { it.value.toString() }
+    val modifiedFilters = filters.toMutableMap()
+            if (filters.containsKey("commonName")) {
+                val query = filters["commonName"].toString()
+                println("Search query: $query")
+            }
+
+            val stringFilters = modifiedFilters.mapValues { it.value.toString() }
             val response = plantService.searchPlants(stringFilters)
 
             if (response.isSuccessful) {
@@ -134,12 +140,15 @@ class PlantRepositoryImpl @Inject constructor(
                     }
                     emit(plants)
                 } else {
+                    println("Search returned null response body")
                     emit(emptyList())
                 }
             } else {
+                println("Search failed with error code: ${response.code()}")
                 emit(emptyList())
             }
         } catch (e: Exception) {
+            println("Search exception: ${e.message}")
             e.printStackTrace()
             emit(emptyList())
         }

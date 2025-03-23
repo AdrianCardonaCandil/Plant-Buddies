@@ -184,13 +184,16 @@ fun SearchResultsScreen(
                             )
                         }
                     }
+                    is SearchState.Empty -> {
+                        EmptyResultsMessage()
+                    }
                     is SearchState.Error -> {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "An error occurred. Please try again.",
+                                text = (searchState as SearchState.Error).message,
                                 color = MaterialTheme.colorScheme.error,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.padding(16.dp)
@@ -362,7 +365,7 @@ fun EmptyResultsMessage() {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Try changing your search or filters to find more plants",
+                text = "Try typing partial names like 'cact' for 'cactus' or 'suc' for 'succulent'\nOr modify your filters to see more results",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
