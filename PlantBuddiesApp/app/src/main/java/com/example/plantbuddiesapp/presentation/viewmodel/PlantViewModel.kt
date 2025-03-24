@@ -152,7 +152,7 @@ class PlantViewModel @Inject constructor(
         }
     }
 
-    data class FilterOption(val displayName: String, val value: String)
+    data class FilterOption(val displayName: String, val value: Any)
 
     private fun updatePlantUIProperties(plantId: String?, waterNeeds: Float, sunlightNeeds: Float) {
         _waterNeeds.value = _waterNeeds.value.toMutableMap().apply {
@@ -189,10 +189,19 @@ class PlantViewModel @Inject constructor(
 
     fun toggleFilter(key: String, value: Any) {
         val currentFilters = _activeFilters.value.toMutableMap()
-        if (currentFilters[key] == value) {
+
+        // Process value based on type
+        val processedValue = when {
+            key == "indoor" && value is String && (value == "true" || value == "false") -> {
+                value.toBoolean() // Convert String to Boolean
+            }
+            else -> value
+        }
+
+        if (currentFilters[key] == processedValue) {
             currentFilters.remove(key)
         } else {
-            currentFilters[key] = value
+            currentFilters[key] = processedValue
         }
         _activeFilters.value = currentFilters
     }
@@ -282,8 +291,8 @@ class PlantViewModel @Inject constructor(
                 FilterOption("High", "High")
             ),
             "indoor" to listOf(
-                FilterOption("Indoor", "true"),
-                FilterOption("Outdoor", "false")
+                FilterOption("Indoor", true),
+                FilterOption("Outdoor", false)
             ),
             "careLevel" to listOf(
                 FilterOption("Easy", "Easy"),

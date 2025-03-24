@@ -432,7 +432,7 @@ fun FiltersSection(
 
                     FilterChip(
                         selected = isSelected,
-                        onClick = { onFilterSelected(category, option.value) },
+                        onClick = { onFilterSelected(category, option.value.toString()) },
                         label = { Text(option.displayName) }
                     )
                 }

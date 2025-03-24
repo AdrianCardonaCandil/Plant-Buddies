@@ -1,8 +1,11 @@
 package com.example.plantbuddiesapp.di
 
+
 import com.example.plantbuddiesapp.data.services.AuthService
 import com.example.plantbuddiesapp.data.services.PlantService
 import com.example.plantbuddiesapp.data.services.UserService
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
@@ -13,9 +16,20 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
+
+
 @dagger.Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+
+    @Provides
+    @Singleton
+    fun provideGson(): Gson {
+        return GsonBuilder()
+            .setLenient()
+            .enableComplexMapKeySerialization() // Add this line
+            .create()
+    }
 
     @Provides
     @Singleton
@@ -37,11 +51,10 @@ object NetworkModule {
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .baseUrl("http://adriancc.duckdns.org:3000/api/")
-            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
+            .client(okHttpClient)
             .build()
     }
-
     @Provides
     @Singleton
     fun providePlantService(retrofit: Retrofit): PlantService {
