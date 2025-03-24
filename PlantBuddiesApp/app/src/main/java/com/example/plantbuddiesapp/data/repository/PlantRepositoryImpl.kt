@@ -157,6 +157,24 @@ class PlantRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun plantExists(plantId: String): Result<Boolean> {
+        return try {
+            val response = plantService.getPlant(plantId)
+            if (response.isSuccessful) {
+                val plant = response.body()
+                if (plant != null) {
+                    Result.success(true)
+                } else {
+                    Result.success(false)
+                }
+            } else {
+                Result.failure(Exception("Failed to check if plant exists: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     private fun convertUriToFile(uri: Uri): File {
         val inputStream = context.contentResolver.openInputStream(uri)
         val file = File(context.cacheDir, "plant_image_${System.currentTimeMillis()}.jpg")
