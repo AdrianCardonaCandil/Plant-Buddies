@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,6 +33,10 @@ class PlantViewModel @Inject constructor(
     val userPlants: StateFlow<List<Plant>> = _userPlants.asStateFlow()
 
     val myPlants = mutableStateListOf<Plant>()
+
+    private val _userFavoritePlants = MutableStateFlow<List<Plant>>(emptyList())
+    val userFavoritePlants: StateFlow<List<Plant>> = _userFavoritePlants.asStateFlow()
+    val favoritePlants = mutableStateListOf<Plant>()
 
     private val _selectedPlant = MutableStateFlow<Plant?>(null)
     val selectedPlant: StateFlow<Plant?> = _selectedPlant.asStateFlow()
@@ -57,6 +62,7 @@ class PlantViewModel @Inject constructor(
 
     init {
         loadUserPlants()
+        loadFavoritePlants()
 
         viewModelScope.launch {
             _searchQuery
@@ -122,6 +128,30 @@ class PlantViewModel @Inject constructor(
         }
     }
 
+    fun addPlantToFavorites(plantId: String) {
+        viewModelScope.launch {
+            _savePlantState.value = SavePlantState.Loading
+
+            plantRepository.addPlantToFavorites(plantId).fold(
+                onSuccess = { plant ->
+                    _savePlantState.value = SavePlantState.Success(plant)
+
+                    _userFavoritePlants.update { currentList ->
+                        if (currentList.none {it.id == plant.id }) {
+                            updatePlantUIProperties(plant.id, 0.7f, 0.6f)
+                            currentList + plant
+                        } else {
+                            currentList
+                        }
+                    }
+                },
+                onFailure = { error ->
+                    _savePlantState.value = SavePlantState.Error(error.message ?: "Unknown error")
+                }
+            )
+        }
+    }
+
     fun selectPlant(plant: Plant) {
         _selectedPlant.value = plant
     }
@@ -137,6 +167,22 @@ class PlantViewModel @Inject constructor(
         }
     }
 
+    fun removePlantFromFavorites(plantId: String) {
+        viewModelScope.launch {
+            plantRepository.removePlantFromFavorites(plantId).fold(
+                onSuccess = {
+                    _userFavoritePlants.update { currentList ->
+                        currentList.filterNot { it.id == plantId}
+                    }
+                },
+                onFailure = { error ->
+                    _savePlantState.value = SavePlantState.Error(error.message ?: "Unknown error")
+                }
+            )
+        }
+    }
+
+
     fun loadUserPlants() {
         viewModelScope.launch {
             plantRepository.getUserPlants().collectLatest { plants ->
@@ -148,6 +194,16 @@ class PlantViewModel @Inject constructor(
                 plants.forEach { plant ->
                     updatePlantUIProperties(plant.id, 0.7f, 0.6f)
                 }
+            }
+        }
+    }
+
+    fun loadFavoritePlants() {
+        viewModelScope.launch {
+            plantRepository.getUserFavoritePlants().collectLatest { plants ->
+                _userFavoritePlants.value = plants
+                favoritePlants.clear()
+                favoritePlants.addAll(plants)
             }
         }
     }

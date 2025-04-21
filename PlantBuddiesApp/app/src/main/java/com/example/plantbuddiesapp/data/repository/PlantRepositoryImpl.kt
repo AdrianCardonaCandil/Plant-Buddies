@@ -67,6 +67,24 @@ class PlantRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun addPlantToFavorites(plantId: String): Result<Plant> {
+        return try {
+            val token = tokenManager.getToken() ?: return Result.failure(Exception("Not authenticated"))
+
+            val response = plantService.addPlantToFavorites(token, plantId)
+
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Result.success(it.plant.toDomain())
+                } ?: Result.failure(Exception("Empty response"))
+            } else {
+                Result.failure(Exception("Failed to add plant to favorites: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun getUserPlants(): Flow<List<Plant>> = flow {
         try {
             val token = tokenManager.getToken()
@@ -78,6 +96,26 @@ class PlantRepositoryImpl @Inject constructor(
             val response = plantService.getUserPlants(token)
             if (response.isSuccessful) {
                 val plants = response.body()?.plants?.map { it.toDomain() } ?: emptyList()
+                emit(plants)
+            } else {
+                emit(emptyList())
+            }
+        } catch (e: Exception) {
+            emit(emptyList())
+        }
+    }
+
+    override suspend fun getUserFavoritePlants(): Flow<List<Plant>> = flow {
+        try {
+            val token = tokenManager.getToken()
+            if (token == null) {
+                emit(emptyList())
+                return@flow
+            }
+
+            val response = plantService.getUserFavoritePlants(token)
+            if (response.isSuccessful) {
+                val plants = response.body()?.favorites?.map { it.toDomain() } ?: emptyList()
                 emit(plants)
             } else {
                 emit(emptyList())
@@ -120,10 +158,28 @@ class PlantRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun removePlantFromFavorites(plantId: String): Result<Plant> {
+        return try {
+            val token = tokenManager.getToken() ?: return Result.failure(Exception("Not authenticated"))
+
+            val response = plantService.removePlantFromFavorites(token, plantId)
+
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Result.success(it.plant.toDomain())
+                } ?: Result.failure(Exception("Empty response"))
+            } else {
+                Result.failure(Exception("Failed to remove plant from favorites: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun searchPlants(filters: Map<String, Any>): Flow<List<Plant>> = flow {
         try {
             println("Search Filters: $filters")
-    val modifiedFilters = filters.toMutableMap()
+            val modifiedFilters = filters.toMutableMap()
             if (filters.containsKey("commonName")) {
                 val query = filters["commonName"].toString()
                 println("Search query: $query")

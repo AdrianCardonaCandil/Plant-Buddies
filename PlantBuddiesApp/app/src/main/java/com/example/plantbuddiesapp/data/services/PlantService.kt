@@ -1,5 +1,6 @@
 package com.example.plantbuddiesapp.data.services
 
+import com.example.plantbuddiesapp.data.dto.FavoritePlantsResponseDto
 import com.example.plantbuddiesapp.data.dto.PlantDto
 import com.example.plantbuddiesapp.data.dto.PlantListResponseDto
 import com.example.plantbuddiesapp.data.dto.PlantResponseDto
@@ -27,6 +28,23 @@ interface PlantService {
 
     @DELETE("users/plantlist/{plantId}")
     suspend fun deletePlant(
+        @Header("Authorization") token: String,
+        @Path("plantId") plantId: String
+    ): Response<PlantResponseDto>
+
+    @GET("users/favorites")
+    suspend fun getUserFavoritePlants(
+        @Header("Authorization") token: String
+    ): Response<FavoritePlantsResponseDto>
+
+    @POST("users/favorites/{plantId}")
+    suspend fun addPlantToFavorites(
+        @Header("Authorization") token: String,
+        @Path("plantId") plantId: String
+    ): Response<PlantResponseDto>
+
+    @DELETE("users/favorites/{plantId}")
+    suspend fun removePlantFromFavorites(
         @Header("Authorization") token: String,
         @Path("plantId") plantId: String
     ): Response<PlantResponseDto>

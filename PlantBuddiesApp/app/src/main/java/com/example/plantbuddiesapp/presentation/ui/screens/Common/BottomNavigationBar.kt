@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Grass
@@ -12,7 +13,7 @@ import com.example.plantbuddiesapp.navigation.Screen
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
-    val items = listOf(Screen.Home, Screen.MyPlants, Screen.User)
+    val items = listOf(Screen.Home, Screen.MyPlants, Screen.FavoritePlants, Screen.User)
 
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -28,6 +29,7 @@ fun BottomNavigationBar(navController: NavController) {
                         imageVector = when (screen) {
                             Screen.Home -> Icons.Default.Home
                             Screen.MyPlants -> Icons.Default.Grass
+                            Screen.FavoritePlants -> Icons.Default.Favorite
                             Screen.User -> Icons.Default.Person
                             Screen.PlantCamera -> TODO()
                             Screen.PlantResults -> TODO()

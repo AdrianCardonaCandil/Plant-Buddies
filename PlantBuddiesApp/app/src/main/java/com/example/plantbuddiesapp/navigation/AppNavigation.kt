@@ -23,6 +23,7 @@ import com.example.plantbuddiesapp.presentation.ui.screens.Home.Identificator.Pl
 import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.plantbuddiesapp.presentation.ui.screens.Common.BottomNavigationBar
+import com.example.plantbuddiesapp.presentation.ui.screens.FavoritePlants.FavoritePlantsScreen
 import com.example.plantbuddiesapp.presentation.viewmodel.MockAuthViewModel
 import com.example.plantbuddiesapp.presentation.ui.screens.Home.SearchResultsScreen
 import java.net.URLDecoder
@@ -57,6 +58,10 @@ fun AppNavigation() {
 
                     composable(Screen.MyPlants.route) {
                         MyPlantsScreen(navController, viewModel)
+                    }
+
+                    composable(Screen.FavoritePlants.route) {
+                        FavoritePlantsScreen(navController, viewModel)
                     }
 
                     composable(Screen.User.route) {

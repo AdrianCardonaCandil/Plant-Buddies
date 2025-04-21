@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -138,6 +139,13 @@ fun PlantInformationScreen(navController: NavHostController, viewModel: PlantVie
         }
     }.value
 
+    val userFavoritePlants by viewModel.userFavoritePlants.collectAsState()
+    val isPlantInFavorites = remember(selectedPlant, userFavoritePlants) {
+        derivedStateOf {
+            selectedPlant?.id != null && userFavoritePlants.any {it.id == selectedPlant!!.id }
+        }
+    }.value
+
 
     LaunchedEffect(selectedPlant) {
         delay(300)
@@ -169,11 +177,36 @@ fun PlantInformationScreen(navController: NavHostController, viewModel: PlantVie
                     style = MaterialTheme.typography.titleMedium
                 )
 
-                IconButton(onClick = { /* Share functionality */ }) {
-                    Icon(
-                        imageVector = Icons.Default.Share,
-                        contentDescription = "Share"
-                    )
+                Row(
+                    modifier = Modifier
+                        .wrapContentWidth()
+                ) {
+                    IconButton(onClick = {
+                        selectedPlant?.let { plant ->
+                            if (!isPlantInFavorites) {
+                                plant.id?.let { viewModel.addPlantToFavorites(it) }
+                            } else {
+                                plant.id?.let { viewModel.removePlantFromFavorites(plant.id) }
+                            }
+                        }
+                    }) {
+                        Icon(
+                            imageVector = if (isPlantInFavorites)
+                                Icons.Default.Favorite
+                            else
+                                Icons.Default.FavoriteBorder
+                            ,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                    }
+
+                    IconButton(onClick = { /* Share functionality */ }) {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = "Share"
+                        )
+                    }
                 }
             }
         },
@@ -467,14 +500,6 @@ fun PlantInformationScreen(navController: NavHostController, viewModel: PlantVie
                                 MaterialTheme.colorScheme.primary
                         )
                     ) {
-                        Icon(
-                            imageVector = if (isPlantInCollection)
-                                Icons.Default.Favorite
-                            else
-                                Icons.Default.FavoriteBorder,
-                            contentDescription = null,
-                            modifier = Modifier.padding(end = 8.dp)
-                        )
                         Text(
                             text = if (isPlantInCollection)
                                 "View in My Plants"
