@@ -19,9 +19,12 @@ import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
@@ -35,7 +38,17 @@ fun ScheduleScreen(
     var selectedDay by remember { mutableStateOf(Calendar.getInstance()) }
     var weekOffset by remember { mutableStateOf(0) }
     val weekDays = remember(weekOffset) { getWeekDays(weekOffset) }
-    val groupedTasks = sampleGroupedTasks()
+
+    var showDialog by remember { mutableStateOf(false) }
+    var newTaskText by remember { mutableStateOf("") }
+    var selectedIcon by remember { mutableStateOf(Icons.Default.Opacity) }
+
+    var dialogSelectedDay by remember { mutableStateOf(selectedDay.clone() as Calendar) }
+
+    val tasksMap = remember { mutableStateMapOf<String, MutableList<Pair<String, ImageVector>>>() }
+
+    val selectedDayName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(selectedDay.time)
+    val tasksForSelectedDay = tasksMap.getOrPut(selectedDayName) { mutableListOf() }
 
     Box(
         modifier = Modifier
@@ -73,21 +86,103 @@ fun ScheduleScreen(
             DaySelector(weekDays = weekDays, selectedDay = selectedDay) { selectedDay = it }
             Spacer(modifier = Modifier.height(16.dp))
 
-            val selectedDayName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(selectedDay.time)
-            val tasksForSelectedDay = groupedTasks[selectedDayName] ?: emptyList()
-
             DayTasksList(day = selectedDayName, tasks = tasksForSelectedDay)
             Divider(modifier = Modifier.padding(vertical = 8.dp))
+        }
 
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text("Add Task") },
+                text = {
+                    Column {
+                        OutlinedTextField(
+                            value = newTaskText,
+                            onValueChange = { newTaskText = it },
+                            label = { Text("Task name") }
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text("Select a day:", style = MaterialTheme.typography.labelLarge)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        DaySelector(
+                            weekDays = weekDays,
+                            selectedDay = dialogSelectedDay,
+                            onDaySelected = { dialogSelectedDay = it }
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text("Select an icon:", style = MaterialTheme.typography.labelLarge)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        IconSelector(selectedIcon = selectedIcon) {
+                            selectedIcon = it
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            if (newTaskText.isNotBlank()) {
+                                val dayName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(dialogSelectedDay.time)
+                                val dayTasks = tasksMap.getOrPut(dayName) { mutableListOf() }
+                                dayTasks.add(newTaskText to selectedIcon)
+
+                                newTaskText = ""
+                                showDialog = false
+                            }
+                        }
+                    ) {
+                        Text("Add")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
 
         FloatingActionButton(
-            onClick = { },
+            onClick = { showDialog = true },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
                 .shadow(8.dp, CircleShape)
         ) { Icon(Icons.Filled.Add, contentDescription = "Add Task") }
+    }
+}
+
+@Composable
+fun IconSelector(selectedIcon: ImageVector, onIconSelected: (ImageVector) -> Unit) {
+    val icons = listOf(
+        Icons.Default.Opacity,
+        Icons.Default.Build,
+        Icons.Default.ShoppingCart,
+        Icons.Default.Star,
+        Icons.Default.Check
+    )
+
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        items(icons.size) { index ->
+            val icon = icons[index]
+            Surface(
+                shape = CircleShape,
+                color = if (icon == selectedIcon) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.surface,
+                shadowElevation = 4.dp,
+                modifier = Modifier
+                    .size(48.dp)
+                    .clickable { onIconSelected(icon) },
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = if (icon == selectedIcon) MaterialTheme.colorScheme.onPrimary
+                    else MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(12.dp)
+                )
+            }
+        }
     }
 }
 
@@ -174,26 +269,6 @@ fun DayTasksList(day: String, tasks: List<Pair<String, ImageVector>>) {
             }
         }
     }
-}
-
-fun sampleGroupedTasks(): Map<String, List<Pair<String, ImageVector>>> {
-    return mapOf(
-        "Monday" to listOf(
-            "Water Basil" to Icons.Default.Opacity,
-            "Prune Rosemary" to Icons.Default.Build
-        ),
-        "Wednesday" to listOf(
-            "Water Mint" to Icons.Default.Opacity,
-            "Harvest Cherry Tomato" to Icons.Default.ShoppingCart
-        ),
-        "Friday" to listOf(
-            "Water Basil" to Icons.Default.Opacity,
-            "Prune Lavender" to Icons.Default.Build
-        ),
-        "Sunday" to listOf(
-            "Water Mint" to Icons.Default.Opacity
-        )
-    )
 }
 
 fun getWeekDays(offset: Int = 0): List<Calendar> {
