@@ -79,5 +79,70 @@ module.exports = (UserModel, PlantModel) => {
         }
     })
 
+    /**
+     * Obtiene las plantas favoritas de un usuario.
+     * @name api/users/favorites
+     */
+    router.get('/favorites', tokenVerify, async (req, res) => {
+        try {
+            const user = User.parse({...req.user, ...req.body});
+            if (user) {
+                const favorites = await userModel.getFavorites(user.uid)
+                return res.status(200).json({
+                    message: 'Plantas favoritas obtenidas correctamente.',
+                    favorites: favorites
+                })
+            }
+        } catch (error) {
+            return res.status(500).json({
+                message: error.message
+            })
+        }
+    })
+
+    /**
+     * Añade una planata a la lista de plantas favoritas de un usuario.
+     * @name api/users/favorites/:id
+     */
+    router.post('/favorites/:id', tokenVerify, async (req, res) => {
+        try {
+            const user = User.parse({...req.user, ...req.body});
+            if (user) {
+                await userModel.addFavorite(user.uid, req.params.id)
+                plant = await plantModel.getPlantById(req.params.id)
+                return res.status(200).json({
+                    message: 'Planta añadida correctamente.',
+                    plant: plant
+                })
+            }
+        } catch (error) {
+            return res.status(500).json({
+                message: error.message
+            })
+        }
+    })
+
+    /**
+     * Elimina una planta de la lista de plantas favoritas de un usuario.
+     * @name api/users/favorites/:id
+     */
+    router.delete('/favorites/:id', tokenVerify, async (req, res) => {
+        try {
+            const user = User.parse({...req.user, ...req.body});
+            if (user) {
+                await userModel.removeFavorite(user.uid, req.params.id)
+                plant = await plantModel.getPlantById(req.params.id)
+                return res.status(200).json({
+                    message: 'Planta eliminada correctamente.',
+                    plant: plant
+                })
+            }
+        } catch (error) {
+            return res.status(500).json({
+                message: error.message
+            })
+        }
+    })
+
     return router;
 }

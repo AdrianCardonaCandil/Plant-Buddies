@@ -67,6 +67,32 @@ class UserModel {
      * @throws {Error} Error al eliminar la planta.
      */
     removePlant = (uid, plantId) => this.service.removePlant(uid, plantId);
+
+    /**
+     * Añade una planta a la lista de plantas favoritas de un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @param {string} plantId - Identificador único de la planta.
+     * @returns {Promise<void>} Promesa de la planta añadida.
+     * @throws {Error} Error al añadir la planta.
+     */
+    addFavorite = (uid, plantId) => this.service.addFavorite(uid, plantId);
+
+    /**
+     * Elimina una planta de la lista de plantas favoritas de un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @param {string} plantId - Identificador único de la planta.
+     * @returns {Promise<void>} Promesa de la planta eliminada.
+     * @throws {Error} Error al eliminar la planta.
+     */
+    removeFavorite = (uid, plantId) => this.service.removeFavorite(uid, plantId);
+
+    /**
+     * Obtiene las plantas favoritas de un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @returns {Promise<Plant[]>} Promesa de las plantas favoritas.
+     * @throws {Error} Error al obtener las plantas favoritas.
+     */
+    getFavorites = (uid) => this.service.getFavorites(uid);
 }
 
 module.exports = UserModel;

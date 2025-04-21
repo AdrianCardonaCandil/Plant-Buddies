@@ -161,6 +161,80 @@ class UserService {
             throw new Error(`Error al eliminar la planta: ${error.message}`);
         }
     }
+
+    /**
+     * Obtiene las plantas favoritas de un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @returns {Promise<Plant[]>} Promesa de las plantas favoritas.
+     * @throws {Error} Error al obtener las plantas favoritas.
+     */
+    getFavorites = async (uid) => {
+        try {
+            const snapshot = await this.db.collection(this.collection).doc(uid).get();
+            if (!snapshot.exists) {
+                throw new Error('Usuario no encontrado');
+            }
+            const plantIds = snapshot.data().favorites;
+            const plantsCollection = process.env.PLANTS_COLLECTION;
+            const plants = await Promise.all(plantIds.map(async (id) => {
+                const plantSnapshot = await this.db.collection(plantsCollection).doc(id).get();
+                return plantSnapshot.data();
+            }));
+            return plants;
+        } catch (error) {
+            throw new Error(`Error al obtener las plantas: ${error.message}`);
+        }
+    }
+
+    /**
+     * Añade una planta a la lista de plantas favoritas de un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @param {string} plantId - Identificador único de la planta.
+     * @returns {Promise<void>} Promesa de la planta añadida.
+     * @throws {Error} Error al añadir la planta.
+     */
+    addFavorite = async (uid, plantId) => {
+        try {
+            const snapshot = await this.db.collection(this.collection).doc(uid).get();
+            if (!snapshot.exists) {
+                throw new Error('Usuario no encontrado');
+            }
+            const plantIds = snapshot.data().favorites;
+            if (plantIds.includes(plantId)) {
+                throw new Error('La planta ya está en la lista de favoritos del usuario');
+            }
+            plantIds.push(plantId);
+            await this.db.collection(this.collection).doc(uid).update({favorites: plantIds});
+        } catch (error) {
+            throw new Error(`Error al añadir la planta: ${error.message}`);
+        }
+    }
+
+    /**
+     * Elimina una planta de la lista de plantas favoritas de un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @param {string} plantId - Identificador único de la planta.
+     * @returns {Promise<void>} Promesa de la planta eliminada.
+     * @throws {Error} Error al eliminar la planta.
+     */
+    removeFavorite = async (uid, plantId) => {
+        try {
+            const snapshot = await this.db.collection(this.collection).doc(uid).get();
+            if (!snapshot.exists) {
+                throw new Error('Usuario no encontrado');
+            }
+            const plantIds = snapshot.data().favorites;
+            const index = plantIds.indexOf(plantId);
+            if (index === -1) {
+                throw new Error('La planta no está en la lista de favoritos del usuario');
+            }
+            await this.db.collection(this.collection).doc(uid).update({
+                favorites: admin.firestore.FieldValue.arrayRemove(plantId)
+            });
+        } catch (error) {
+            throw new Error(`Error al eliminar la planta: ${error.message}`);
+        }
+    }
 }
 
 module.exports = UserService;
