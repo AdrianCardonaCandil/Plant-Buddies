@@ -51,7 +51,7 @@ fun ScheduleScreen(
 
     val tasksMap = remember { mutableStateMapOf<String, MutableList<Pair<String, ImageVector>>>() }
 
-    val selectedDayName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(selectedDay.time)
+    val selectedDayName = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(selectedDay.time)
     val tasksForSelectedDay = tasksMap.getOrPut(selectedDayName) { mutableListOf() }
 
     var isListView by remember { mutableStateOf(true) }
@@ -180,7 +180,7 @@ fun ScheduleScreen(
                     TextButton(
                         onClick = {
                             if (newTaskText.isNotBlank()) {
-                                val dayName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(dialogSelectedDay.time)
+                                val dayName = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(dialogSelectedDay.time)
                                 val dayTasks = tasksMap.getOrPut(dayName) { mutableListOf() }
                                 dayTasks.add(newTaskText to selectedIcon)
 
@@ -225,7 +225,7 @@ fun IconSelector(selectedIcon: ImageVector, onIconSelected: (ImageVector) -> Uni
             Surface(
                 shape = CircleShape,
                 color = if (icon == selectedIcon) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.surface,
+                        else MaterialTheme.colorScheme.surface,
                 shadowElevation = 4.dp,
                 modifier = Modifier
                     .size(48.dp)
@@ -235,7 +235,7 @@ fun IconSelector(selectedIcon: ImageVector, onIconSelected: (ImageVector) -> Uni
                     icon,
                     contentDescription = null,
                     tint = if (icon == selectedIcon) MaterialTheme.colorScheme.onPrimary
-                    else MaterialTheme.colorScheme.onSurface,
+                           else MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(12.dp)
                 )
             }
@@ -366,7 +366,14 @@ fun DayTasksList(day: String, tasks: MutableList<Pair<String, ImageVector>>) {
     val showDeleteDialog = remember { mutableStateOf(false) }
     val taskToDelete = remember { mutableStateOf<Pair<String, ImageVector>?>(null) }
 
-    Text(day, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+    val formattedDate = try {
+        val parsedDate = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).parse(day)
+        SimpleDateFormat("EEEE, MMM dd", Locale.ENGLISH).format(parsedDate)
+    } catch (e: Exception) {
+        day
+    }
+
+    Text(formattedDate, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
     Spacer(modifier = Modifier.height(8.dp))
 
     if (tasks.isEmpty()) {
