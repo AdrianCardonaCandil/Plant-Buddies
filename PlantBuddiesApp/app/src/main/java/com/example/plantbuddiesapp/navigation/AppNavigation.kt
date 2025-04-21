@@ -25,6 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.plantbuddiesapp.presentation.ui.screens.Common.BottomNavigationBar
 import com.example.plantbuddiesapp.presentation.viewmodel.MockAuthViewModel
 import com.example.plantbuddiesapp.presentation.ui.screens.Home.SearchResultsScreen
+import com.example.plantbuddiesapp.presentation.ui.screens.Schedule.ScheduleScreen
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
@@ -57,6 +58,10 @@ fun AppNavigation() {
 
                     composable(Screen.MyPlants.route) {
                         MyPlantsScreen(navController, viewModel)
+                    }
+
+                    composable(Screen.Schedule.route) {
+                        ScheduleScreen(navController, viewModel)
                     }
 
                     composable(Screen.User.route) {

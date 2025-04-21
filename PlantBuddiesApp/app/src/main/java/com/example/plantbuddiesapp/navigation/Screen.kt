@@ -7,4 +7,5 @@ sealed class Screen(val route: String) {
     object PlantCamera : Screen("plantCamera")
     object PlantResults : Screen("plantResults/{imageUri}")
     object Search : Screen("search")
+    object Schedule : Screen("Schedule")
 }
