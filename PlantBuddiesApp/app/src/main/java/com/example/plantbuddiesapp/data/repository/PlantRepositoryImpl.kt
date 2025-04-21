@@ -1,17 +1,19 @@
 package com.example.plantbuddiesapp.data.repository
 import android.content.Context
 import android.net.Uri
+import com.example.plantbuddiesapp.data.dto.PlantSearchRequest
 import com.example.plantbuddiesapp.data.mapper.toDomain
-import com.example.plantbuddiesapp.data.mapper.toRequestDto
 import com.example.plantbuddiesapp.data.services.PlantService
 import com.example.plantbuddiesapp.domain.model.Plant
 import com.example.plantbuddiesapp.domain.repository.PlantRepository
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
@@ -179,14 +181,15 @@ class PlantRepositoryImpl @Inject constructor(
     override suspend fun searchPlants(filters: Map<String, Any>): Flow<List<Plant>> = flow {
         try {
             println("Search Filters: $filters")
-            val modifiedFilters = filters.toMutableMap()
-            if (filters.containsKey("commonName")) {
-                val query = filters["commonName"].toString()
-                println("Search query: $query")
-            }
 
-            val stringFilters = modifiedFilters.mapValues { it.value.toString() }
-            val response = plantService.searchPlants(stringFilters)
+            // Convert map to JSON string using Gson
+            val gson = Gson()
+            val jsonBody = gson.toJson(filters)
+
+            // Create request body with proper content type
+            val requestBody = jsonBody.toRequestBody("application/json".toMediaType())
+
+            val response = plantService.searchPlants(requestBody)
 
             if (response.isSuccessful) {
                 val plantListResponse = response.body()

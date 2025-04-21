@@ -26,6 +26,7 @@ import com.example.plantbuddiesapp.presentation.ui.screens.Common.BottomNavigati
 import com.example.plantbuddiesapp.presentation.ui.screens.FavoritePlants.FavoritePlantsScreen
 import com.example.plantbuddiesapp.presentation.viewmodel.MockAuthViewModel
 import com.example.plantbuddiesapp.presentation.ui.screens.Home.SearchResultsScreen
+import com.example.plantbuddiesapp.presentation.ui.screens.Schedule.ScheduleScreen
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
@@ -62,6 +63,10 @@ fun AppNavigation() {
 
                     composable(Screen.FavoritePlants.route) {
                         FavoritePlantsScreen(navController, viewModel)
+                    }
+
+                    composable(Screen.Schedule.route) {
+                        ScheduleScreen(navController, viewModel)
                     }
 
                     composable(Screen.User.route) {

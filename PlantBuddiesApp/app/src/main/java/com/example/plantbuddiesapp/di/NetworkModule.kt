@@ -1,8 +1,11 @@
 package com.example.plantbuddiesapp.di
 
+
 import com.example.plantbuddiesapp.data.services.AuthService
 import com.example.plantbuddiesapp.data.services.PlantService
 import com.example.plantbuddiesapp.data.services.UserService
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
@@ -16,6 +19,15 @@ import javax.inject.Singleton
 @dagger.Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+
+    @Provides
+    @Singleton
+    fun provideGson(): Gson {
+        return GsonBuilder()
+            .setLenient()
+            .enableComplexMapKeySerialization() // Add this line
+            .create()
+    }
 
     @Provides
     @Singleton

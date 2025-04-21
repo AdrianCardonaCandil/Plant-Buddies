@@ -37,10 +37,9 @@ class PlantService {
             const snapshot = await query.get();
             const plants = snapshot.docs.map(doc => Plant.parse(doc.data()));
             if (commonName) {
-                return plants.filter(plant => {
-                    return plant.commonName.toLowerCase().includes(commonName.toLowerCase()) ||
-                    plant.scientificName.toLowerCase().includes(commonName.toLowerCase());
-                });
+                return plants.filter(plant => 
+                    plant.commonName.toLowerCase().includes(commonName.toLowerCase()) ||
+                    plant.scientificName.toLowerCase().includes(commonName.toLowerCase()))
             }
             return plants;
 
