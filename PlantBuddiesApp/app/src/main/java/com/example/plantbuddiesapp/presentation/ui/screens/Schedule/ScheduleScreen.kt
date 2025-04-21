@@ -23,12 +23,14 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.ViewAgenda
+import androidx.compose.material.icons.filled.ViewWeek
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 
 @Composable
 fun ScheduleScreen(
@@ -45,10 +47,14 @@ fun ScheduleScreen(
 
     var dialogSelectedDay by remember { mutableStateOf(selectedDay.clone() as Calendar) }
 
+    var currentMonthCalendar by remember { mutableStateOf(Calendar.getInstance()) }
+
     val tasksMap = remember { mutableStateMapOf<String, MutableList<Pair<String, ImageVector>>>() }
 
     val selectedDayName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(selectedDay.time)
     val tasksForSelectedDay = tasksMap.getOrPut(selectedDayName) { mutableListOf() }
+
+    var isListView by remember { mutableStateOf(true) }
 
     Box(
         modifier = Modifier
@@ -68,22 +74,74 @@ fun ScheduleScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { weekOffset-- }) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Previous week")
+                IconButton(onClick = { isListView = !isListView }) {
+                    Icon(
+                        imageVector = if (isListView) Icons.Default.ViewWeek else Icons.Default.ViewAgenda,
+                        contentDescription = if (isListView) "Switch to Calendar View" else "Switch to Week View"
+                    )
                 }
 
-                Text(
-                    "Week of ${SimpleDateFormat("MMM dd", Locale.ENGLISH).format(weekDays.first().time)}",
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                if (!isListView) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = {
+                            currentMonthCalendar.add(Calendar.MONTH, -1)
+                        }) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Previous month")
+                        }
 
-                IconButton(onClick = { weekOffset++ }) {
-                    Icon(Icons.Default.ArrowForward, contentDescription = "Next week")
+                        Text(
+                            SimpleDateFormat("MMMM yyyy", Locale.ENGLISH).format(currentMonthCalendar.time),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+
+                        IconButton(onClick = {
+                            currentMonthCalendar.add(Calendar.MONTH, 1)
+                        }) {
+                            Icon(Icons.Default.ArrowForward, contentDescription = "Next month")
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = { weekOffset-- }) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Previous week")
+                        }
+
+                        Text(
+                            "Week of ${SimpleDateFormat("MMM dd", Locale.ENGLISH).format(weekDays.first().time)}",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+
+                        IconButton(onClick = { weekOffset++ }) {
+                            Icon(Icons.Default.ArrowForward, contentDescription = "Next week")
+                        }
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            DaySelector(weekDays = weekDays, selectedDay = selectedDay) { selectedDay = it }
+
+            if (isListView) {
+                DaySelector(
+                    weekDays = weekDays,
+                    selectedDay = selectedDay,
+                    onDaySelected = { selectedDay = it }
+                )
+            } else {
+                MonthCalendar(
+                    selectedDate = selectedDay,
+                    monthCalendar = currentMonthCalendar,
+                    onDateSelected = { selectedDay = it }
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             DayTasksList(day = selectedDayName, tasks = tasksForSelectedDay)
@@ -104,10 +162,10 @@ fun ScheduleScreen(
                         Spacer(modifier = Modifier.height(12.dp))
                         Text("Select a day:", style = MaterialTheme.typography.labelLarge)
                         Spacer(modifier = Modifier.height(8.dp))
-                        DaySelector(
-                            weekDays = weekDays,
-                            selectedDay = dialogSelectedDay,
-                            onDaySelected = { dialogSelectedDay = it }
+                        MonthCalendar(
+                            selectedDate = dialogSelectedDay,
+                            monthCalendar = currentMonthCalendar,
+                            onDateSelected = { dialogSelectedDay = it }
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))
@@ -158,8 +216,7 @@ fun IconSelector(selectedIcon: ImageVector, onIconSelected: (ImageVector) -> Uni
         Icons.Default.Opacity,
         Icons.Default.Build,
         Icons.Default.ShoppingCart,
-        Icons.Default.Star,
-        Icons.Default.Check
+        Icons.Default.Star
     )
 
     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -234,6 +291,70 @@ fun DaySelector(
                         else MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MonthCalendar(
+    selectedDate: Calendar,
+    monthCalendar: Calendar,
+    onDateSelected: (Calendar) -> Unit
+) {
+    val calendar = monthCalendar.clone() as Calendar
+    calendar.set(Calendar.DAY_OF_MONTH, 1)
+
+    val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+    val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+    val firstDayOfWeek = if (dayOfWeek == Calendar.SUNDAY) 6
+    else dayOfWeek - Calendar.MONDAY
+
+    val totalCells = daysInMonth + firstDayOfWeek
+    val weeks = (totalCells + 6) / 7
+
+    Column {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            listOf("M", "T", "W", "T", "F", "S", "S").forEach {
+                Text(it, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+            }
+        }
+        for (week in 0 until weeks) {
+            Row(modifier = Modifier.fillMaxWidth()) {
+                for (dayIndex in 0..6) {
+                    val cellIndex = week * 7 + dayIndex
+                    val dayNumber = cellIndex - firstDayOfWeek + 1
+
+                    if (cellIndex < firstDayOfWeek || dayNumber > daysInMonth) {
+                        Box(modifier = Modifier.weight(1f).padding(8.dp)) {}
+                    } else {
+                        val day = calendar.clone() as Calendar
+                        day.set(Calendar.DAY_OF_MONTH, dayNumber)
+
+                        val isSelected = day.get(Calendar.YEAR) == selectedDate.get(Calendar.YEAR) &&
+                                day.get(Calendar.MONTH) == selectedDate.get(Calendar.MONTH) &&
+                                day.get(Calendar.DAY_OF_MONTH) == selectedDate.get(Calendar.DAY_OF_MONTH)
+
+                        Surface(
+                            shape = CircleShape,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary
+                                    else Color.Transparent,
+                            modifier = Modifier
+                                .weight(1f)
+                                .aspectRatio(1f)
+                                .clickable { onDateSelected(day) }
+                                .padding(4.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    dayNumber.toString(),
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                                            else MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
