@@ -362,7 +362,10 @@ fun MonthCalendar(
 }
 
 @Composable
-fun DayTasksList(day: String, tasks: List<Pair<String, ImageVector>>) {
+fun DayTasksList(day: String, tasks: MutableList<Pair<String, ImageVector>>) {
+    val showDeleteDialog = remember { mutableStateOf(false) }
+    val taskToDelete = remember { mutableStateOf<Pair<String, ImageVector>?>(null) }
+
     Text(day, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
     Spacer(modifier = Modifier.height(8.dp))
 
@@ -372,7 +375,8 @@ fun DayTasksList(day: String, tasks: List<Pair<String, ImageVector>>) {
             style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)
         )
     } else {
-        tasks.forEach { (task, icon) ->
+        tasks.forEach { taskPair ->
+            val (task, icon) = taskPair
             val iconColor = when {
                 "Water" in task -> Color(0xFF4FC3F7)
                 "Prune" in task -> Color(0xFF81C784)
@@ -382,13 +386,40 @@ fun DayTasksList(day: String, tasks: List<Pair<String, ImageVector>>) {
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 8.dp)
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .fillMaxWidth()
+                    .clickable {
+                        taskToDelete.value = taskPair
+                        showDeleteDialog.value = true
+                    }
             ) {
                 Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(task, style = MaterialTheme.typography.bodyLarge)
             }
         }
+    }
+
+    if (showDeleteDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog.value = false },
+            title = { Text("Delete Task") },
+            text = { Text("Are you sure you want to delete this task?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    taskToDelete.value?.let { tasks.remove(it) }
+                    showDeleteDialog.value = false
+                }) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog.value = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
