@@ -4,6 +4,8 @@ import com.example.plantbuddiesapp.data.dto.FavoritePlantsResponseDto
 
 import com.example.plantbuddiesapp.data.dto.PlantListResponseDto
 import com.example.plantbuddiesapp.data.dto.PlantResponseDto
+import com.example.plantbuddiesapp.data.dto.ScheduleResponseDto
+import com.example.plantbuddiesapp.data.dto.TaskDto
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -59,4 +61,18 @@ interface PlantService {
     suspend fun getPlant(
         @Path("plantId") plantId: String
     ): Response<PlantResponseDto>
+
+    @POST("tasks/{date}")
+    suspend fun addTask(
+        @Header("Authorization") token: String,
+        @Path("date") date: String,
+        @Body taskDto: TaskDto
+    ): Response<ScheduleResponseDto>
+
+    @DELETE("tasks/{taskId}")
+    suspend fun deleteTask(
+        @Header("Authorization") token: String,
+        @Path("taskId") taskId: String
+    ): Response<ScheduleResponseDto>
+
 }

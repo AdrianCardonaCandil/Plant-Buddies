@@ -2,6 +2,7 @@ package com.example.plantbuddiesapp.presentation.viewmodel
 
 import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.plantbuddiesapp.domain.model.Plant
@@ -59,6 +60,9 @@ class PlantViewModel @Inject constructor(
     private var isIdentifying = false
     private val _waterNeeds = MutableStateFlow<Map<String?, Float>>(emptyMap())
     private val _sunlightNeeds = MutableStateFlow<Map<String?, Float>>(emptyMap())
+
+    private val _tasksMap = MutableStateFlow<Map<String, List<Pair<String, ImageVector>>>>(emptyMap())
+    val tasksMap: StateFlow<Map<String, List<Pair<String, ImageVector>>>> = _tasksMap.asStateFlow()
 
     init {
         loadUserPlants()
@@ -357,4 +361,19 @@ class PlantViewModel @Inject constructor(
             ),
         )
     }
+
+    fun addTask(day: String, task: String, icon: ImageVector) {
+        _tasksMap.update { currentMap ->
+            val updatedList = currentMap[day].orEmpty().toMutableList().apply { add(task to icon) }
+            currentMap + (day to updatedList)
+        }
+    }
+
+    fun removeTask(day: String, taskPair: Pair<String, ImageVector>) {
+        _tasksMap.update { currentMap ->
+            val updatedList = currentMap[day].orEmpty().toMutableList().apply { remove(taskPair) }
+            currentMap + (day to updatedList)
+        }
+    }
+
 }
