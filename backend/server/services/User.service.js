@@ -235,6 +235,33 @@ class UserService {
             throw new Error(`Error al eliminar la planta: ${error.message}`);
         }
     }
+
+
+    /**
+     * Actualiza el nombre personalizado de una planta del usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @param {string} plantId - Identificador único de la planta.
+     * @param {string} newName - Nuevo nombre personalizado.
+     * @returns {Promise<void>}
+     * @throws {Error} Error al editar la planta.
+     */
+    updateUserPlantName = async (uid, plantId, newName) => {
+        try {
+            const userDocRef = this.db.collection(this.collection).doc(uid);
+            const snapshot = await userDocRef.get();
+            if (!snapshot.exists) {
+                throw new Error("Usuario no encontrado");
+            }
+            const customNames = snapshot.data().customPlantNames || {};
+            customNames[plantId] = newName;
+            await userDocRef.update({
+                customPlantNames: customNames
+            });
+        } catch (error) {
+            throw new Error(`Error al actualizar el nombre de la planta: ${error.message}`);
+        }
+    }
+
 }
 
 module.exports = UserService;

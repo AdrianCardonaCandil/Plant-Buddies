@@ -6,6 +6,7 @@ import com.example.plantbuddiesapp.data.dto.PlantListResponseDto
 import com.example.plantbuddiesapp.data.dto.PlantResponseDto
 import com.example.plantbuddiesapp.data.dto.ScheduleResponseDto
 import com.example.plantbuddiesapp.data.dto.TaskDto
+import com.example.plantbuddiesapp.data.dto.UpdatePlantNameDto
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -74,5 +75,12 @@ interface PlantService {
         @Header("Authorization") token: String,
         @Path("taskId") taskId: String
     ): Response<ScheduleResponseDto>
+
+    @PATCH("users/plantlist/{plantId}")
+    suspend fun updatePlantName(
+        @Header("Authorization") token: String,
+        @Path("plantId") plantId: String?,
+        @Body nameUpdate: UpdatePlantNameDto
+    ): Response<PlantResponseDto>
 
 }

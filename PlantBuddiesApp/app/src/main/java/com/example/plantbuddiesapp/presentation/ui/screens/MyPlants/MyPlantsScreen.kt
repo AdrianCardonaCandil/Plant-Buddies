@@ -4,7 +4,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.AlertDialog
@@ -146,7 +146,7 @@ fun PlantsList(
                 Icon(
                     imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
                     contentDescription = if (isGridView) stringResource(R.string.switch_to_list)
-                        else stringResource(R.string.switch_to_grid),
+                    else stringResource(R.string.switch_to_grid),
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
@@ -234,6 +234,9 @@ fun PlantCard(
     var visible by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
+    var showEditDialog by remember { mutableStateOf(false) }
+    var newName by remember { mutableStateOf(plant.commonName ?: "") }
+
     LaunchedEffect(Unit) { visible = true }
 
     val scale by animateFloatAsState(
@@ -281,21 +284,41 @@ fun PlantCard(
                     modifier = Modifier.fillMaxSize().padding(12.dp),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    IconButton(
-                        onClick = { showDeleteDialog = true },
-                        modifier = Modifier
-                            .align(Alignment.End)
-                            .size(32.dp)
-                            .background(
-                                MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
-                                RoundedCornerShape(50)
-                            )
+                    Row(
+                        modifier = Modifier.align(Alignment.End),
+                        horizontalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = stringResource(R.string.delete_icon_description),
-                            tint = MaterialTheme.colorScheme.error
-                        )
+                        IconButton(
+                            onClick = { showDeleteDialog = true },
+                            modifier = Modifier
+                                .size(32.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                                    RoundedCornerShape(50)
+                                )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = stringResource(R.string.delete_icon_description),
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+
+                        IconButton(
+                            onClick = { showEditDialog = true },
+                            modifier = Modifier
+                                .size(32.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                                    RoundedCornerShape(50)
+                                )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Edit Plant",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
 
                     Column {
@@ -369,19 +392,40 @@ fun PlantCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                IconButton(
-                    onClick = { showDeleteDialog = true },
-                    modifier = Modifier
-                        .align(Alignment.End)
-                        .size(36.dp)
-                        .padding(4.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = stringResource(R.string.delete_icon_description),
-                        tint = MaterialTheme.colorScheme.error
-                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        IconButton(
+                            onClick = { showDeleteDialog = true },
+                            modifier = Modifier
+                                .size(36.dp)
+                                .padding(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = stringResource(R.string.delete_icon_description),
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+
+                        IconButton(
+                            onClick = { showEditDialog = true },
+                            modifier = Modifier
+                                .size(36.dp)
+                                .padding(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Edit Plant",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                    }
                 }
+
             }
         }
     }
@@ -411,4 +455,39 @@ fun PlantCard(
             }
         )
     }
+
+    if (showEditDialog) {
+        var newName by remember { mutableStateOf(plant.commonName ?: "") }
+
+        AlertDialog(
+            onDismissRequest = { showEditDialog = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.updatePlantName(plant.id, newName)
+                    showEditDialog = false
+                }) {
+                    Text(text = "Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditDialog = false }) {
+                    Text(text = stringResource(R.string.cancel))
+                }
+            },
+            title = { Text("Edit Plant") },
+            text = {
+                Column {
+                    Text("Enter a new name for ${plant.commonName ?: "the plant"}:")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    androidx.compose.material3.OutlinedTextField(
+                        value = newName,
+                        onValueChange = { newName = it },
+                        label = { Text("Name") }
+                    )
+                }
+            }
+        )
+    }
+
+
 }
