@@ -40,17 +40,18 @@ fun BottomNavigationBar(
                 Screen.FavoritePlants -> Icons.Default.Favorite
                 Screen.Schedule -> Icons.Default.CalendarToday
                 Screen.User -> Icons.Default.Person
-                Screen.Login -> null
-                Screen.Register -> null
-                Screen.PlantCamera -> null
-                Screen.PlantResults -> null
-                Screen.Search -> null
-                Screen.SearchResults -> null
-                Screen.PlantInformation -> null
+                else -> null
             }
 
-            // Solo muestra el item si tiene un icono asignado
             if (iconVector != null) {
+
+                val targetRoute = if (screen == Screen.User) {
+                    if (isLoggedIn) Screen.User.route else Screen.Login.route
+                } else {
+                    screen.route
+                }
+                val isSelected = currentRoute == targetRoute || (currentRoute == Screen.User.route && screen == Screen.User)
+
                 NavigationBarItem(
                     icon = {
                         Icon(
@@ -59,39 +60,21 @@ fun BottomNavigationBar(
                         )
                     },
                     label = { Text(screen.route.replaceFirstChar { it.uppercase() }) },
-                    selected = currentRoute == screen.route || (screen == Screen.User && currentRoute == Screen.Login.route && !isLoggedIn),
+                    selected =isSelected,
                     onClick = {
-
-                        val targetRoute: String
-
-                        // --- LÓGICA CLAVE: Destino condicional SOLO para User ---
-                        if (screen == Screen.User) {
-                            targetRoute = if (isLoggedIn) Screen.User.route else Screen.Login.route
-                        } else {
-                            // Para todas las demás pestañas, el destino es la propia ruta de la pantalla
-                            targetRoute = screen.route
-                        }
 
                         if (currentRoute != targetRoute) {
                             navController.navigate(targetRoute) {
-                                // Lógica de navegación estándar para limpiar stack, etc.
-                                // Aplica popUpTo para las pestañas principales si se está logueado
-                                // o si se navega a Home.
-                                if (targetRoute == Screen.Home.route || isLoggedIn) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        // Guarda el estado solo para las pestañas principales cuando estás logueado
-                                        // O siempre para Home
-                                        saveState = (isLoggedIn && screen != Screen.User && screen != Screen.Home) || screen == Screen.Home
-                                    }
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState =
+                                        true
                                 }
-                                // Evita múltiples instancias de la misma pantalla
                                 launchSingleTop = true
-                                // Restaura estado si es apropiado (ej. al volver a una pestaña principal)
-                                restoreState = (isLoggedIn && screen != Screen.User && screen != Screen.Home) || screen == Screen.Home
+                                restoreState = true
                             }
                         }
                     },
-                    alwaysShowLabel = true, // Muestra siempre las etiquetas
+                    alwaysShowLabel = true,
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
                         selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,

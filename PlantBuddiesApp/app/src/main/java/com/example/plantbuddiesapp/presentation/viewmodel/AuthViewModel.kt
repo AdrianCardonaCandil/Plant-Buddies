@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.example.plantbuddiesapp.presentation.ui.states.AuthState
 import com.example.plantbuddiesapp.presentation.ui.states.NavigationEvent
+import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -24,21 +25,12 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    tokenManager: TokenManager
+    private val tokenManager: TokenManager
 ) : ViewModel() {
     
     private val _state = MutableStateFlow(AuthState())
     val state: StateFlow<AuthState> = _state.asStateFlow()
 
-//    val isLoggedIn: StateFlow<Boolean> = tokenManager.currentUser
-//        .map { firebaseUser -> firebaseUser != null }
-//        .stateIn(
-//    scope = viewModelScope,
-//    started = SharingStarted.WhileSubscribed(5000L),
-//    initialValue = tokenManager.currentUser.value != null
-//    )
-
-    //
     val isLoggedIn = tokenManager.currentUser
         .map { firebaseUser -> firebaseUser != null }
         .stateIn(
@@ -46,6 +38,9 @@ class AuthViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000L),
             initialValue = tokenManager.currentUser.value != null
         )
+
+    val currentUser: StateFlow<FirebaseUser?> = tokenManager.currentUser
+
     fun onEmailChange(email: String) {
         _state.update { it.copy(email = email, error = null) }
     }
@@ -106,6 +101,21 @@ class AuthViewModel @Inject constructor(
     fun navigateToLogin() {
         _state.update { it.copy(navigationEvent = NavigationEvent.NavigateToLogin, error = null) }
     }
+
+    fun logout() {
+        viewModelScope.launch {
+            val result = authRepository.logout()
+            result.fold(
+                onSuccess = {
+                     _state.update { it.copy(isLoading = false, ) }
+                },
+                onFailure = { exception ->
+                    _state.update { it.copy(isLoading = false, error = exception.message ?: "Logout failed") }
+                }
+            )
+        }
+    }
+
 
     fun consumeNavigationEvent() {
         _state.update { it.copy(navigationEvent = null) }

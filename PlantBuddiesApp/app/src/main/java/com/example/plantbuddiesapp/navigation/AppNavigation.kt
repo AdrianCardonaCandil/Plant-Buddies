@@ -42,7 +42,6 @@ fun AppNavigation() {
     val currentRoute = navBackStackEntry?.destination?.route
     val authViewModel: AuthViewModel = hiltViewModel()
     val showBottomBar = when (currentRoute) {
-        Screen.Login.route, Screen.Register.route,
         Screen.PlantCamera.route,
         Screen.PlantResults.route,
         Screen.PlantInformation.route -> false
