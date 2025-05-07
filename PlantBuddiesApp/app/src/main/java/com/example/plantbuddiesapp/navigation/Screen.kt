@@ -9,4 +9,8 @@ sealed class Screen(val route: String) {
     object PlantResults : Screen("plantResults/{imageUri}")
     object Search : Screen("search")
     object Schedule : Screen("Schedule")
+    object SearchResults : Screen("search_results")
+    object PlantInformation : Screen("plant_information")
+    object Login : Screen("Login")
+    object Register : Screen("Register")
 }

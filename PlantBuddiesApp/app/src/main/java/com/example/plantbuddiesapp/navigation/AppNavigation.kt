@@ -22,11 +22,13 @@ import com.example.plantbuddiesapp.presentation.ui.screens.User.UserScreen
 import com.example.plantbuddiesapp.presentation.ui.screens.Home.Identificator.PlantCameraScreen
 import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.plantbuddiesapp.presentation.ui.screens.Auth.LoginScreen
+import com.example.plantbuddiesapp.presentation.ui.screens.Auth.RegisterScreen
 import com.example.plantbuddiesapp.presentation.ui.screens.Common.BottomNavigationBar
 import com.example.plantbuddiesapp.presentation.ui.screens.FavoritePlants.FavoritePlantsScreen
-import com.example.plantbuddiesapp.presentation.viewmodel.MockAuthViewModel
 import com.example.plantbuddiesapp.presentation.ui.screens.Home.SearchResultsScreen
 import com.example.plantbuddiesapp.presentation.ui.screens.Schedule.ScheduleScreen
+import com.example.plantbuddiesapp.presentation.viewmodel.AuthViewModel
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
@@ -36,15 +38,16 @@ fun AppNavigation() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val viewModel: PlantViewModel = hiltViewModel()
 
+    val plantViewModel: PlantViewModel = hiltViewModel()
     val currentRoute = navBackStackEntry?.destination?.route
+    val authViewModel: AuthViewModel = hiltViewModel()
     val showBottomBar = when (currentRoute) {
+        Screen.Login.route, Screen.Register.route,
         Screen.PlantCamera.route,
-        "plantResults/{encodedUri}",
-        "plant_information" -> false
+        Screen.PlantResults.route,
+        Screen.PlantInformation.route -> false
         else -> true
     }
-    val fakeAuth: MockAuthViewModel = hiltViewModel()
-
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
@@ -53,6 +56,14 @@ fun AppNavigation() {
                     .statusBarsPadding()
             ) {
                 NavHost(navController = navController, startDestination = Screen.Home.route) {
+
+                    composable(Screen.Login.route) {
+                        LoginScreen(navController, authViewModel)
+                    }
+                    composable(Screen.Register.route) {
+                        RegisterScreen(navController, authViewModel)
+                    }
+
                     composable(Screen.Home.route) {
                         HomeScreen(navController, viewModel)
                     }
@@ -69,13 +80,14 @@ fun AppNavigation() {
                         ScheduleScreen(navController, viewModel)
                     }
 
-                    composable(Screen.User.route) {
-                        UserScreen(navController)
-                    }
+                    composable(Screen.User.route) { UserScreen(navController) }
                     composable("search_results") {
                         SearchResultsScreen(navController, viewModel)
                     }
 
+                    composable(Screen.SearchResults.route) {
+                        SearchResultsScreen(navController, plantViewModel)
+                    }
                     composable(Screen.PlantCamera.route) {
 
                         PlantCameraScreen(navController)
@@ -107,7 +119,7 @@ fun AppNavigation() {
                 }
             }
             if (showBottomBar) {
-                BottomNavigationBar(navController = navController)
+                BottomNavigationBar(navController = navController, authViewModel = authViewModel)
             }
         }
     }
