@@ -2,86 +2,202 @@ package com.example.plantbuddiesapp.presentation.ui.screens.MyPlants
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.Opacity
 import androidx.compose.material.icons.filled.ViewList
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.navigation.NavHostController
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.*
+import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.plantbuddiesapp.R
 import com.example.plantbuddiesapp.domain.model.Plant
 import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
 import coil.compose.rememberAsyncImagePainter
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyPlantsScreen(
     navController: NavHostController,
     viewModel: PlantViewModel = hiltViewModel()
 ) {
-    // We're using the ViewModel's myPlants list which is updated in the ViewModel
-    val plants = viewModel.myPlants
+    val allPlants = viewModel.myPlants
+    var filteredPlants by remember { mutableStateOf(allPlants.toList()) }
+    var showFilters by remember { mutableStateOf(false) }
+    var isGridView by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
-    ) {
-        if (plants.isEmpty()) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        TopAppBar(
+            title = { Text(text = stringResource(R.string.plants_title),
+                    style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold)
+                )},
+            actions = {
+                IconButton(onClick = { showFilters = !showFilters }) {
+                    Icon(
+                        imageVector = Icons.Default.FilterList,
+                        contentDescription = stringResource(R.string.switch_to_list)
+                    )
+                }
+                IconButton(onClick = { isGridView = !isGridView }) {
+                    Icon(
+                        imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
+                        contentDescription = if (isGridView) stringResource(R.string.switch_to_list)
+                        else stringResource(R.string.switch_to_grid),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        )
+
+        if (showFilters) {
+            FilterBar { filters ->
+                filteredPlants = allPlants.filter { plant ->
+                    filters.all { (key, value) ->
+                        when (key) {
+                            "sunlight" -> (plant.sunlight ?: "").trim().equals(value.trim(), ignoreCase = true)
+                            "water" -> (plant.watering ?: "").trim().equals(value.trim(), ignoreCase = true)
+                            "care" -> (plant.careLevel ?: "").trim().equals(value.trim(), ignoreCase = true)
+                            else -> true
+                        }
+                    }
+                }
+            }
+        }
+
+        if (filteredPlants.isEmpty()) {
             EmptyPlantsView()
         } else {
             PlantsList(
-                plants = plants,
+                plants = filteredPlants,
                 onPlantClick = {
                     viewModel.selectPlant(it)
                     navController.navigate("plant_information")
                 },
                 onDeletePlant = { viewModel.removePlant(it) },
-                viewModel = viewModel
+                viewModel = viewModel,
+                isGridView = isGridView,
+
             )
+        }
+    }
+}
+
+@Composable
+fun FilterBar(
+    onApplyFilters: (Map<String, String>) -> Unit
+) {
+    var sunlight by remember { mutableStateOf<String?>(null) }
+    var water by remember { mutableStateOf<String?>(null) }
+    var care by remember { mutableStateOf<String?>(null) }
+
+    Column(
+        Modifier.fillMaxWidth().padding(8.dp)) {
+        FilterChipGroup(
+            label = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.WbSunny, contentDescription = "Sunlight")
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Sunlight")
+                }
+            },
+            options = listOf("Full Sun", "Partial Shade", "Full Shade"),
+            selectedOption = sunlight
+        ) { sunlight = it }
+
+        FilterChipGroup(
+            label = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Opacity, contentDescription = "Water Needs")
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Water Needs")
+                }
+            },
+            options = listOf("Low", "Average", "High"),
+            selectedOption = water
+        ) { water = it }
+
+        FilterChipGroup(
+            label = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Face, contentDescription = "Care Level")
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Care Level")
+                }
+            },
+            options = listOf("Low", "Medium", "High"),
+            selectedOption = care
+        ) { care = it }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Button(
+                onClick = {
+                    val filters = mutableMapOf<String, String>()
+                    sunlight?.let { filters["sunlight"] = it }
+                    water?.let { filters["water"] = it }
+                    care?.let { filters["care"] = it }
+                    onApplyFilters(filters)
+                }
+            ) { Text(text = stringResource(R.string.apply_filters_button)) }
+
+            OutlinedButton(
+                onClick = {
+                    sunlight = null
+                    water = null
+                    care = null
+                    onApplyFilters(emptyMap())
+                }
+            ) { Text(text = stringResource(R.string.reset_filters_button)) }
+        }
+    }
+}
+
+@Composable
+fun FilterChipGroup(
+    label: @Composable () -> Unit,
+    options: List<String>,
+    selectedOption: String?,
+    onOptionSelected: (String) -> Unit
+) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)) {
+        label()
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            options.forEach { option ->
+                FilterChip(
+                    selected = selectedOption == option,
+                    onClick = { onOptionSelected(option) },
+                    label = { Text(option) }
+                )
+            }
         }
     }
 }
@@ -89,7 +205,9 @@ fun MyPlantsScreen(
 @Composable
 fun EmptyPlantsView() {
     Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -129,29 +247,10 @@ fun PlantsList(
     plants: List<Plant>,
     onPlantClick: (Plant) -> Unit,
     onDeletePlant: (Plant) -> Unit,
-    viewModel: PlantViewModel
+    viewModel: PlantViewModel,
+    isGridView: Boolean,
 ) {
-    var isGridView by remember { mutableStateOf(false) }
-
     Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.End
-        ) {
-            IconButton(
-                onClick = { isGridView = !isGridView }
-            ) {
-                Icon(
-                    imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
-                    contentDescription = if (isGridView) stringResource(R.string.switch_to_list)
-                    else stringResource(R.string.switch_to_grid),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-
         if (isGridView) {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
@@ -262,7 +361,8 @@ fun PlantCard(
         if (isGridView) {
             Box(
                 modifier = Modifier
-                    .fillMaxSize().height(200.dp)
+                    .fillMaxSize()
+                    .height(200.dp)
                     .clip(RoundedCornerShape(20.dp))
             ) {
                 plant.imageUri?.let { uri ->
@@ -281,7 +381,9 @@ fun PlantCard(
                 )
 
                 Column(
-                    modifier = Modifier.fillMaxSize().padding(12.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(12.dp),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     Row(
@@ -328,7 +430,8 @@ fun PlantCard(
                                 modifier = Modifier
                                     .background(
                                         MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
-                                        shape = RoundedCornerShape(8.dp))
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
                                     .padding(horizontal = 8.dp, vertical = 4.dp),
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
@@ -479,7 +582,7 @@ fun PlantCard(
                 Column {
                     Text("Enter a new name for ${plant.commonName ?: "the plant"}:")
                     Spacer(modifier = Modifier.height(8.dp))
-                    androidx.compose.material3.OutlinedTextField(
+                    OutlinedTextField(
                         value = newName,
                         onValueChange = { newName = it },
                         label = { Text("Name") }
@@ -488,6 +591,4 @@ fun PlantCard(
             }
         )
     }
-
-
 }

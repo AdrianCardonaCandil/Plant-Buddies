@@ -22,6 +22,7 @@
 
 
     // Strings for the MyPlantsScreen
+    <string name="plants_title">My Plants</string>
     <string name="plants_empty_title">No Plants Yet</string>
     <string name="plants_empty_description">Add your first plant by identifying one with the camera!</string>
     <string name="plants_empty_button">Add plants</string>
@@ -31,6 +32,9 @@
     <string name="switch_to_list">Switch to List</string>
     <string name="switch_to_grid">Switch to Grid</string>
     <string name="delete">Delete</string>
+    <string name="filterlist_icon_description">Show/Hide Filters</string>
+    <string name="apply_filters_button">Apply Filters</string>
+    <string name="reset_filters_button">Reset Filters</string>
 
 
     // Strings for the ScheduleScreen
