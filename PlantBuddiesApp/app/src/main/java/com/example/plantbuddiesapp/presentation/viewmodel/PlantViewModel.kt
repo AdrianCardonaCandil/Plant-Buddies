@@ -362,9 +362,13 @@ class PlantViewModel @Inject constructor(
         )
     }
 
-    fun addTask(day: String, task: String, icon: ImageVector) {
+    fun addTask(day: String, description: String, hour: Int, minute: Int, icon: ImageVector) {
+        val time = String.format("%02d:%02d", hour, minute)
+        val fullDescription = "$description|$time"
         _tasksMap.update { currentMap ->
-            val updatedList = currentMap[day].orEmpty().toMutableList().apply { add(task to icon) }
+            val updatedList = currentMap[day].orEmpty().toMutableList().apply {
+                add(fullDescription to icon)
+            }
             currentMap + (day to updatedList)
         }
     }

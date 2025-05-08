@@ -1,5 +1,6 @@
 package com.example.plantbuddiesapp.presentation.ui.screens.Schedule
 
+import android.app.TimePickerDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -7,8 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Opacity
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -25,12 +25,11 @@ import androidx.compose.material.icons.filled.ShoppingBasket
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.ViewAgenda
 import androidx.compose.material.icons.filled.ViewWeek
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
 import com.example.plantbuddiesapp.R
@@ -46,6 +45,10 @@ fun ScheduleScreen(navController: NavController, viewModel: PlantViewModel = hil
     var dialogSelectedDay by remember { mutableStateOf(selectedDay.clone() as Calendar) }
     var dialogMonthCalendar by remember { mutableStateOf((selectedDay.clone() as Calendar)
         .apply { set(Calendar.DAY_OF_MONTH, 1) }) }
+
+    val context = LocalContext.current
+    var selectedHour by remember { mutableStateOf(12) }
+    var selectedMinute by remember { mutableStateOf(0) }
 
     var currentMonthCalendar by remember { mutableStateOf(Calendar.getInstance()) }
 
@@ -210,6 +213,25 @@ fun ScheduleScreen(navController: NavController, viewModel: PlantViewModel = hil
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))
+                        Text("Seleccionar hora:", style = MaterialTheme.typography.labelLarge)
+
+                        val timeText = String.format("%02d:%02d", selectedHour, selectedMinute)
+                        Button(onClick = {
+                            TimePickerDialog(
+                                context,
+                                { _, hour, minute ->
+                                    selectedHour = hour
+                                    selectedMinute = minute
+                                },
+                                selectedHour,
+                                selectedMinute,
+                                true
+                            ).show()
+                        }) {
+                            Text("Hora seleccionada: $timeText")
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
                         Text("Select an icon:", style = MaterialTheme.typography.labelLarge)
                         Spacer(modifier = Modifier.height(8.dp))
                         IconSelector(selectedIcon = selectedIcon) { selectedIcon = it }
@@ -221,7 +243,14 @@ fun ScheduleScreen(navController: NavController, viewModel: PlantViewModel = hil
                             if (newTaskText.isNotBlank()) {
                                 val dayName = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
                                     .format(dialogSelectedDay.time)
-                                viewModel.addTask(dayName, newTaskText, selectedIcon)
+
+                                // val formattedTime = String.format("%02d:%02d", selectedHour, selectedMinute)
+                                // val taskTitle = newTaskText.trim()
+                                // val fullTask = "$taskTitle | $formattedTime"
+
+                                //viewModel.addTask(dayName, fullTask, selectedIcon)
+
+                                viewModel.addTask(dayName, newTaskText.trim(), selectedHour, selectedMinute, selectedIcon)
                                 newTaskText = ""
                                 showDialog = false
                             }
@@ -425,7 +454,21 @@ fun DayTasksList(day: String, tasks: List<Pair<String, ImageVector>>, viewModel:
                 Icon(icon, contentDescription = null, tint = iconColor,
                     modifier = Modifier.size(24.dp))
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(task, style = MaterialTheme.typography.bodyLarge)
+
+                val parts = task.split("|").map { it.trim() }
+                val description = parts.getOrNull(0) ?: task
+                val time = parts.getOrNull(1) ?: ""
+
+                Column {
+                    Text(
+                        description,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
+                    )
+                    if (time.isNotBlank()) {
+                        Text(time, style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray))
+                    }
+                }
+
             }
         }
     }
