@@ -18,4 +18,7 @@ interface AuthService {
     suspend fun register(
         @Body registerRequest: RegisterRequestDto
     ): Response<AuthResponseDto>
+
+    @POST("auth/logout")
+    suspend fun logout(): Response<Unit>
 }

@@ -4,6 +4,7 @@ import android.net.Uri
 import com.example.plantbuddiesapp.data.dto.PlantSearchRequest
 import com.example.plantbuddiesapp.data.dto.ScheduleResponseDto
 import com.example.plantbuddiesapp.data.dto.TaskDto
+import com.example.plantbuddiesapp.data.dto.UpdatePlantNameDto
 import com.example.plantbuddiesapp.data.mapper.toDomain
 import com.example.plantbuddiesapp.data.services.PlantService
 import com.example.plantbuddiesapp.domain.model.Plant
@@ -270,6 +271,25 @@ class PlantRepositoryImpl @Inject constructor(
                 } ?: Result.failure(Exception("Empty response"))
             } else {
                 Result.failure(Exception("Failed to delete task: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updatePlant(plant: Plant): Result<Plant> {
+        return try {
+            val token = tokenManager.getToken() ?: return Result.failure(Exception("Not authenticated"))
+            val nameUpdate = UpdatePlantNameDto(commonName = plant.commonName)
+
+            val response = plantService.updatePlantName(token, plant.id, nameUpdate)
+
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Result.success(it.plant.toDomain())
+                } ?: Result.failure(Exception("Empty response"))
+            } else {
+                Result.failure(Exception("Failure to update plant name: ${response.code()}"))
             }
         } catch (e: Exception) {
             Result.failure(e)

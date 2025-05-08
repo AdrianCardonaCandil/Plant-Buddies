@@ -376,4 +376,16 @@ class PlantViewModel @Inject constructor(
         }
     }
 
+    fun updatePlantName(plantId: String?, newName: String) {
+        if (plantId == null) return
+        val index = myPlants.indexOfFirst { it.id == plantId }
+        if (index != -1) {
+            val updatedPlant = myPlants[index].copy(commonName = newName)
+            myPlants[index] = updatedPlant
+            viewModelScope.launch {
+                plantRepository.updatePlant(updatedPlant)
+            }
+        }
+    }
+
 }

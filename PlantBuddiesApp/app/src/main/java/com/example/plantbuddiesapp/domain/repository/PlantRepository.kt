@@ -19,4 +19,5 @@ interface PlantRepository {
     suspend fun plantExists(plantId: String): Result<Boolean>
     suspend fun addTask(date: String, taskDto: TaskDto): Result<ScheduleResponseDto>
     suspend fun deleteTask(taskId: String): Result<ScheduleResponseDto>
+    suspend fun updatePlant(plant: Plant): Result<Plant>
 }

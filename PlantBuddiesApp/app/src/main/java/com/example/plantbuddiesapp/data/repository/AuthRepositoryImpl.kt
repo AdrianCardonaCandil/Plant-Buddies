@@ -69,4 +69,15 @@ class AuthRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override suspend fun logout(): Result<Unit> {
+        return try {
+            firebaseAuth.signOut()
+            Log.d("AuthRepositoryImpl", "User logged out successfully")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e("AuthRepositoryImpl", "Error logging out user", e)
+            Result.failure(e)
+        }
+    }
 }
