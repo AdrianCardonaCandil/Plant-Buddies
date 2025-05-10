@@ -46,7 +46,6 @@ fun ScheduleScreen(navController: NavController, viewModel: ScheduleViewModel = 
     var weekOffset by remember { mutableStateOf(0) }
     var showDialog by remember { mutableStateOf(false) }
     var taskLabel by remember { mutableStateOf("") }
-    var dialogSelectedDay by remember { mutableStateOf(selectedDay.clone() as Calendar) }
     var dialogMonthCalendar by remember { mutableStateOf((selectedDay.clone() as Calendar)
         .apply { set(Calendar.DAY_OF_MONTH, 1) }) }
 
@@ -172,7 +171,7 @@ fun ScheduleScreen(navController: NavController, viewModel: ScheduleViewModel = 
         }
 
         if (showDialog) {
-            var newTaskDate = LocalDate.now()
+            var newTaskDate by remember { mutableStateOf(LocalDate.now()) }
             taskLabel = ""
             AlertDialog(
                 onDismissRequest = { showDialog = false },
@@ -230,7 +229,7 @@ fun ScheduleScreen(navController: NavController, viewModel: ScheduleViewModel = 
                                 it.get(Calendar.YEAR),
                                 it.get(Calendar.MONTH) + 1,
                                 it.get(Calendar.DAY_OF_MONTH)
-                            ) }
+                            )}
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))
@@ -262,15 +261,6 @@ fun ScheduleScreen(navController: NavController, viewModel: ScheduleViewModel = 
                     TextButton(
                         onClick = {
                             if (taskLabel.isNotBlank()) {
-                                val dayName = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
-                                    .format(dialogSelectedDay.time)
-
-                                // val formattedTime = String.format("%02d:%02d", selectedHour, selectedMinute)
-                                // val taskTitle = newTaskText.trim()
-                                // val fullTask = "$taskTitle | $formattedTime"
-
-                                //viewModel.addTask(dayName, newTaskText.trim(), selectedHour, selectedMinute, selectedIcon)
-                                //viewModel.createTask(taskLabel.trim(), _selectedType,
                                 val newTaskDateTime = LocalDateTime.of(newTaskDate, LocalTime.of(selectedHour, selectedMinute))
                                 viewModel.createTask(taskLabel.trim(), _selectedType, newTaskDateTime)
                                 showDialog = false

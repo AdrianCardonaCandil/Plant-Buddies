@@ -3,6 +3,7 @@ package com.example.plantbuddiesapp.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.plantbuddiesapp.data.dto.TaskType
+import com.example.plantbuddiesapp.data.services.PlantCareNotificationService
 import com.example.plantbuddiesapp.domain.model.Task
 import com.example.plantbuddiesapp.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,13 +14,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @OptIn(FlowPreview::class)
 @HiltViewModel
 class ScheduleViewModel @Inject constructor(
     private val userRepository: UserRepository,
+    private val plantCareNotificationService: PlantCareNotificationService
 ): ViewModel() {
     private val _tasks = mutableListOf<Task>()
 
@@ -42,15 +43,6 @@ class ScheduleViewModel @Inject constructor(
         viewModelScope.launch {
             userRepository.getUserTasks().fold(
                 onSuccess = { tasks ->
-                    if (tasks.isNotEmpty()) {
-                        println("Cargando tareas del usuario")
-                        for (task in tasks) {
-                            val date = task.dateTime
-                            val day = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                            println("Tarea para $day: ${task.label}")
-                        }
-                    }
-                    println("Tareas del usuario cargadas")
                     loadAllTasks(tasks)
                     loadTasksForDate()
                 },
@@ -79,6 +71,13 @@ class ScheduleViewModel @Inject constructor(
             userRepository.addTask(task)
             loadUserTasks()
         }
+
+        plantCareNotificationService.scheduleNotification(
+            id = "plant-care-channel",
+            title = task.type.toString(),
+            text = task.label,
+            triggerTime = date
+        )
     }
 
     fun deleteTask(taskId: String) {
