@@ -21,6 +21,7 @@ import com.example.plantbuddiesapp.presentation.ui.screens.MyPlants.MyPlantsScre
 import com.example.plantbuddiesapp.presentation.ui.screens.User.UserScreen
 import com.example.plantbuddiesapp.presentation.ui.screens.Home.Identificator.PlantCameraScreen
 import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
+import com.example.plantbuddiesapp.presentation.viewmodel.ScheduleViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.plantbuddiesapp.presentation.ui.screens.Auth.LoginScreen
 import com.example.plantbuddiesapp.presentation.ui.screens.Auth.RegisterScreen
@@ -39,6 +40,7 @@ fun AppNavigation() {
     val viewModel: PlantViewModel = hiltViewModel()
 
     val plantViewModel: PlantViewModel = hiltViewModel()
+    val scheduleViewModel: ScheduleViewModel = hiltViewModel()
     val currentRoute = navBackStackEntry?.destination?.route
     val authViewModel: AuthViewModel = hiltViewModel()
     val showBottomBar = when (currentRoute) {
@@ -76,7 +78,7 @@ fun AppNavigation() {
                     }
 
                     composable(Screen.Schedule.route) {
-                        ScheduleScreen(navController, viewModel)
+                        ScheduleScreen(navController, scheduleViewModel)
                     }
 
                     composable(Screen.User.route) { UserScreen(navController) }

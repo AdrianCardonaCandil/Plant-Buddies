@@ -9,10 +9,8 @@ import androidx.compose.material.icons.filled.Opacity
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.animation.animateColorAsState
@@ -33,15 +31,21 @@ import androidx.compose.ui.text.font.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
 import com.example.plantbuddiesapp.R
+import com.example.plantbuddiesapp.domain.model.Task
+import com.example.plantbuddiesapp.presentation.viewmodel.ScheduleViewModel
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
-fun ScheduleScreen(navController: NavController, viewModel: PlantViewModel = hiltViewModel())
+fun ScheduleScreen(navController: NavController, viewModel: ScheduleViewModel = hiltViewModel())
 {
     var selectedDay by remember { mutableStateOf(Calendar.getInstance()) }
     var weekOffset by remember { mutableStateOf(0) }
     var showDialog by remember { mutableStateOf(false) }
-    var newTaskText by remember { mutableStateOf("") }
-    var selectedIcon by remember { mutableStateOf(Icons.Default.Opacity) }
+    var taskLabel by remember { mutableStateOf("") }
     var dialogSelectedDay by remember { mutableStateOf(selectedDay.clone() as Calendar) }
     var dialogMonthCalendar by remember { mutableStateOf((selectedDay.clone() as Calendar)
         .apply { set(Calendar.DAY_OF_MONTH, 1) }) }
@@ -52,10 +56,11 @@ fun ScheduleScreen(navController: NavController, viewModel: PlantViewModel = hil
 
     var currentMonthCalendar by remember { mutableStateOf(Calendar.getInstance()) }
 
+    val selectedDate by viewModel.selectedDate.collectAsState()
+    val tasksForSelectedDate by viewModel.tasksForSelectedDate.collectAsState()
+    var _selectedType: String by remember { mutableStateOf("WATER")}
+
     val weekDays = remember(weekOffset) { getWeekDays(weekOffset) }
-    val tasksMap by viewModel.tasksMap.collectAsState()
-    val selectedDayName = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(selectedDay.time)
-    val tasksForSelectedDay = tasksMap[selectedDayName] ?: emptyList()
     var isWeekView by remember { mutableStateOf(true) }
 
     Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
@@ -142,28 +147,39 @@ fun ScheduleScreen(navController: NavController, viewModel: PlantViewModel = hil
 
             if (isWeekView) {
                 DaySelector(
-                    weekDays = weekDays, selectedDay = selectedDay,
-                    onDaySelected = { selectedDay = it }
+                    weekDays = weekDays, selectedDate = selectedDate,
+                    onDaySelected = {
+                        viewModel.updateSelectedDate(it.toInstant()
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate())
+                    }
                 )
             } else {
                 MonthCalendar(
-                    selectedDate = selectedDay, monthCalendar = currentMonthCalendar,
-                    onDateSelected = { selectedDay = it }
+                    selectedDate = selectedDate, monthCalendar = currentMonthCalendar,
+                    onDateSelected = { viewModel.updateSelectedDate(LocalDate.of(
+                        it.get(Calendar.YEAR),
+                        it.get(Calendar.MONTH) + 1,
+                        it.get(Calendar.DAY_OF_MONTH)
+                    ))
+                    }
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            DayTasksList(day = selectedDayName, tasks = tasksForSelectedDay, viewModel = viewModel)
+            DayTasksList(date = selectedDate, tasks = tasksForSelectedDate, viewModel = viewModel)
             Divider(modifier = Modifier.padding(vertical = 8.dp))
         }
 
         if (showDialog) {
+            var newTaskDate = LocalDate.now()
+            taskLabel = ""
             AlertDialog(
                 onDismissRequest = { showDialog = false },
                 title = { Text(text = stringResource(R.string.add_task_title)) },
                 text = {
                     Column {
-                        OutlinedTextField(value = newTaskText, onValueChange = { newTaskText = it },
+                        OutlinedTextField(value = taskLabel, onValueChange = { taskLabel = it },
                             label = { Text(text = stringResource(R.string.add_task_description)) })
 
                         Spacer(modifier = Modifier.height(12.dp))
@@ -207,9 +223,14 @@ fun ScheduleScreen(navController: NavController, viewModel: PlantViewModel = hil
 
                         Spacer(modifier = Modifier.height(8.dp))
 
+
                         MonthCalendar(
-                            selectedDate = dialogSelectedDay, monthCalendar = dialogMonthCalendar,
-                            onDateSelected = { dialogSelectedDay = it }
+                            selectedDate = newTaskDate, monthCalendar = dialogMonthCalendar,
+                            onDateSelected = { newTaskDate = LocalDate.of(
+                                it.get(Calendar.YEAR),
+                                it.get(Calendar.MONTH) + 1,
+                                it.get(Calendar.DAY_OF_MONTH)
+                            ) }
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))
@@ -234,13 +255,13 @@ fun ScheduleScreen(navController: NavController, viewModel: PlantViewModel = hil
                         Spacer(modifier = Modifier.height(12.dp))
                         Text("Select an icon:", style = MaterialTheme.typography.labelLarge)
                         Spacer(modifier = Modifier.height(8.dp))
-                        IconSelector(selectedIcon = selectedIcon) { selectedIcon = it }
+                        IconSelector(selectedType = _selectedType) { _selectedType = it }
                     }
                 },
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            if (newTaskText.isNotBlank()) {
+                            if (taskLabel.isNotBlank()) {
                                 val dayName = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
                                     .format(dialogSelectedDay.time)
 
@@ -248,10 +269,10 @@ fun ScheduleScreen(navController: NavController, viewModel: PlantViewModel = hil
                                 // val taskTitle = newTaskText.trim()
                                 // val fullTask = "$taskTitle | $formattedTime"
 
-                                //viewModel.addTask(dayName, fullTask, selectedIcon)
-
-                                viewModel.addTask(dayName, newTaskText.trim(), selectedHour, selectedMinute, selectedIcon)
-                                newTaskText = ""
+                                //viewModel.addTask(dayName, newTaskText.trim(), selectedHour, selectedMinute, selectedIcon)
+                                //viewModel.createTask(taskLabel.trim(), _selectedType,
+                                val newTaskDateTime = LocalDateTime.of(newTaskDate, LocalTime.of(selectedHour, selectedMinute))
+                                viewModel.createTask(taskLabel.trim(), _selectedType, newTaskDateTime)
                                 showDialog = false
                             }
                         }
@@ -274,10 +295,14 @@ fun ScheduleScreen(navController: NavController, viewModel: PlantViewModel = hil
 
 
 @Composable
-fun IconSelector(selectedIcon: ImageVector, onIconSelected: (ImageVector) -> Unit) {
+fun IconSelector(selectedType: String, onIconSelected: (String) -> Unit) {
     val icons = listOf(
         Icons.Default.Opacity, Icons.Default.ContentCut,
         Icons.Default.ShoppingBasket, Icons.Default.Star
+    )
+
+    val taskTypes = listOf(
+        "WATER", "PRUNE", "HARVEST", "UNKNOWN"
     )
 
     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -285,14 +310,14 @@ fun IconSelector(selectedIcon: ImageVector, onIconSelected: (ImageVector) -> Uni
             val icon = icons[index]
             Surface(
                 shape = CircleShape,
-                color = if (icon == selectedIcon) MaterialTheme.colorScheme.primary
+                color = if (index == taskTypes.indexOf(selectedType)) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.surface,
                 shadowElevation = 4.dp,
-                modifier = Modifier.size(48.dp).clickable { onIconSelected(icon) },
+                modifier = Modifier.size(48.dp).clickable { onIconSelected(taskTypes[index]) },
             ) {
                 Icon(
                     icon, contentDescription = null,
-                    tint = if (icon == selectedIcon) MaterialTheme.colorScheme.onPrimary
+                    tint = if (index == taskTypes.indexOf(selectedType)) MaterialTheme.colorScheme.onPrimary
                     else MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(12.dp)
                 )
@@ -302,7 +327,7 @@ fun IconSelector(selectedIcon: ImageVector, onIconSelected: (ImageVector) -> Uni
 }
 
 @Composable
-fun DaySelector(weekDays: List<Calendar>, selectedDay: Calendar, onDaySelected: (Calendar) -> Unit)
+fun DaySelector(weekDays: List<Calendar>, selectedDate: LocalDate, onDaySelected: (Calendar) -> Unit)
 {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -311,7 +336,11 @@ fun DaySelector(weekDays: List<Calendar>, selectedDay: Calendar, onDaySelected: 
         weekDays.forEach { date ->
             val dayName = SimpleDateFormat("EEE", Locale.ENGLISH).format(date.time).uppercase()
             val dayNumber = date.get(Calendar.DAY_OF_MONTH)
-            val isSelected = date.get(Calendar.DAY_OF_YEAR) == selectedDay.get(Calendar.DAY_OF_YEAR)
+            val isSelected = LocalDate.of(
+                date.get(Calendar.YEAR),
+                date.get(Calendar.MONTH) + 1,
+                date.get(Calendar.DAY_OF_MONTH)
+            ) == selectedDate
 
             val animatedColor by animateColorAsState(
                 targetValue = if (isSelected) MaterialTheme.colorScheme.primary
@@ -352,7 +381,7 @@ fun DaySelector(weekDays: List<Calendar>, selectedDay: Calendar, onDaySelected: 
 
 @Composable
 fun MonthCalendar(
-    selectedDate: Calendar, monthCalendar: Calendar, onDateSelected: (Calendar) -> Unit
+    selectedDate: LocalDate, monthCalendar: Calendar, onDateSelected: (Calendar) -> Unit
 ) {
     val calendar = monthCalendar.clone() as Calendar
     calendar.set(Calendar.DAY_OF_MONTH, 1)
@@ -383,9 +412,11 @@ fun MonthCalendar(
                         val day = calendar.clone() as Calendar
                         day.set(Calendar.DAY_OF_MONTH, dayNumber)
 
-                        val isSelected = day.get(Calendar.YEAR) == selectedDate.get(Calendar.YEAR) &&
-                                day.get(Calendar.MONTH) == selectedDate.get(Calendar.MONTH) &&
-                                day.get(Calendar.DAY_OF_MONTH) == selectedDate.get(Calendar.DAY_OF_MONTH)
+                        val isSelected = LocalDate.of(
+                            day.get(Calendar.YEAR),
+                            day.get(Calendar.MONTH) + 1,
+                            day.get(Calendar.DAY_OF_MONTH)
+                        ) == selectedDate
 
                         Surface(
                             shape = CircleShape,
@@ -411,18 +442,28 @@ fun MonthCalendar(
 }
 
 @Composable
-fun DayTasksList(day: String, tasks: List<Pair<String, ImageVector>>, viewModel: PlantViewModel) {
-    val showDeleteDialog = remember { mutableStateOf(false) }
-    val taskToDelete = remember { mutableStateOf<Pair<String, ImageVector>?>(null) }
-
-    val formattedDate = try {
-        val parsedDate = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).parse(day)
-        SimpleDateFormat("EEEE, MMM dd", Locale.ENGLISH).format(parsedDate)
-    } catch (e: Exception) { day }
+fun DayTasksList(date: LocalDate, tasks: List<Task>, viewModel: ScheduleViewModel) {
+    val formattedDate = remember(date) {
+        date.format(DateTimeFormatter.ofPattern("EEEE, MMM dd"))
+    }
 
     Text(formattedDate, style = MaterialTheme.typography.titleMedium
         .copy(fontWeight = FontWeight.Bold))
     Spacer(modifier = Modifier.height(8.dp))
+
+    val iconMap = mapOf(
+        "WATER" to Icons.Default.Opacity,
+        "PRUNE" to Icons.Default.ContentCut,
+        "HARVEST" to Icons.Default.ShoppingBasket,
+        "UNKNOWN" to Icons.Default.Star
+    )
+
+    val iconColorMap = mapOf(
+        "WATER" to Color(0xFF4FC3F7),
+        "PRUNE" to Color(0xFF81C784),
+        "HARVEST" to Color(0xFFFFB74D),
+        "UNKNOWN" to MaterialTheme.colorScheme.onSurface
+    )
 
     if (tasks.isEmpty()) {
         Text(
@@ -430,16 +471,9 @@ fun DayTasksList(day: String, tasks: List<Pair<String, ImageVector>>, viewModel:
             style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)
         )
     } else {
-        tasks.forEach { taskPair ->
-            val (task, icon) = taskPair
-            val lowerTask = task.lowercase()
-
-            val iconColor = when {
-                "water" in lowerTask -> Color(0xFF4FC3F7)
-                "prune" in lowerTask -> Color(0xFF81C784)
-                "harvest" in lowerTask -> Color(0xFFFFB74D)
-                else -> MaterialTheme.colorScheme.onSurface
-            }
+        tasks.forEach { task ->
+            var taskToDelete by remember { mutableStateOf<String?>(null) }
+            val (label, type, dateTime) = task
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -447,45 +481,44 @@ fun DayTasksList(day: String, tasks: List<Pair<String, ImageVector>>, viewModel:
                     .padding(vertical = 8.dp)
                     .fillMaxWidth()
                     .clickable {
-                        taskToDelete.value = taskPair
-                        showDeleteDialog.value = true
+                        taskToDelete = task.id
                     }
             ) {
-                Icon(icon, contentDescription = null, tint = iconColor,
+                Icon(iconMap[type.toString()]!! , contentDescription = null, tint = iconColorMap[type.toString()]!!,
                     modifier = Modifier.size(24.dp))
                 Spacer(modifier = Modifier.width(12.dp))
 
-                val parts = task.split("|").map { it.trim() }
-                val description = parts.getOrNull(0) ?: task
-                val time = parts.getOrNull(1) ?: ""
-
                 Column {
                     Text(
-                        description,
+                        label,
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
                     )
-                    if (time.isNotBlank()) {
-                        Text(time, style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray))
-                    }
+                    Text(
+                        dateTime.format(DateTimeFormatter.ofPattern("HH:mm")),
+                        style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
+                    )
                 }
-
             }
+            DeleteTaskDialog(taskToDelete = taskToDelete, taskLabel = task.label, onDelete = viewModel::deleteTask, onDismiss = { taskToDelete = null })
         }
     }
+}
 
-    if (showDeleteDialog.value) {
+@Composable
+fun DeleteTaskDialog(taskToDelete: String?, taskLabel: String, onDelete: (String) -> Unit, onDismiss: () -> Unit) {
+    taskToDelete?.let { taskId ->
         AlertDialog(
-            onDismissRequest = { showDeleteDialog.value = false },
-            title = { Text(text = stringResource(R.string.delete_task_title)) },
+            onDismissRequest = onDismiss,
+            title = { Text(text = stringResource(R.string.delete_task_title) + " \"$taskLabel\"") },
             text = { Text(text = stringResource(R.string.delete_task_description)) },
             confirmButton = {
                 TextButton(onClick = {
-                    taskToDelete.value?.let { viewModel.removeTask(day, it) }
-                    showDeleteDialog.value = false
+                    onDelete(taskId)
+                    onDismiss()
                 }) { Text(text = stringResource(R.string.delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog.value = false }) {
+                TextButton(onClick = onDismiss) {
                     Text(text = stringResource(R.string.cancel))
                 }
             }

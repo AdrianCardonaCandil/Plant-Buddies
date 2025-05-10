@@ -236,7 +236,6 @@ class UserService {
         }
     }
 
-
     /**
      * Actualiza el nombre personalizado de una planta del usuario.
      * @param {string} uid - Identificador único del usuario.
@@ -262,6 +261,77 @@ class UserService {
         }
     }
 
+    /**
+     * Obtiene las tareas de un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @returns {Promise<Task[]>} Promesa de las tareas.
+     * @throws {Error} Error al obtener las tareas.
+     */
+    async getTasks(uid) {
+        try {
+            const userRef = await this.db.collection(this.collection).doc(uid);
+            const tasksCollection = process.env.TASKS_COLLECTION;
+            const tasksSnapshot = await userRef.collection('tasks').get();
+
+            if (tasksSnapshot.empty) {
+                console.log('No hay tareas para el usuario');
+                return [];
+            }
+
+            return tasksSnapshot.docs.map(doc => 
+            ({
+                id: doc.id,
+                dateTime: new Date(doc.data().dateTime._seconds * 1000),
+                label: doc.data().label,
+                type: doc.data().type,
+            })
+            )
+        } catch (error) {
+            throw new Error(`Error al obtener las tareas: ${error.message}`);
+        }
+    }
+
+    /**
+     * Añade una tarea a un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @param {Task} task - Objeto con los datos de la tarea.
+     * @returns {Promise<Task>} Promesa de la tarea añadida.
+     * @throws {Error} Error al añadir la tarea.
+     */
+    addTask = async (uid, task) => {
+        try {
+            const userRef = await this.db.collection(this.collection).doc(uid);
+            console.log("hello")
+            const tasksCollection = process.env.TASKS_COLLECTION;
+            const taskRef = userRef.collection(tasksCollection).doc();
+            await taskRef.set({
+                label: task.label,
+                type: task.type,
+                dateTime: admin.firestore.Timestamp.fromDate(new Date(task.dateTime))
+            });
+            return task;
+        } catch (error) {
+            throw new Error(`Error al añadir la tarea: ${error.message}`);
+        }
+    }
+
+    /**
+     * Elimina una tarea de un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @param {string} taskId - Identificador único de la tarea.
+     * @returns {Promise<void>} Promesa de la tarea eliminada.
+     * @throws {Error} Error al eliminar la tarea.
+     */
+    removeTask = async (uid, taskId) => {
+        try {
+            const userRef = await this.db.collection(this.collection).doc(uid);
+            const tasksCollection = process.env.TASKS_COLLECTION;
+            const taskRef = userRef.collection(tasksCollection).doc(taskId);
+            await taskRef.delete();
+        } catch (error) {
+            throw new Error(`Error al eliminar la tarea: ${error.message}`);
+        }
+    }
 }
 
 module.exports = UserService;

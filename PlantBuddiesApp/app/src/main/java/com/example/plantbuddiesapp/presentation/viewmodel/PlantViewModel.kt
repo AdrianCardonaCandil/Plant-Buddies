@@ -186,7 +186,6 @@ class PlantViewModel @Inject constructor(
         }
     }
 
-
     fun loadUserPlants() {
         viewModelScope.launch {
             plantRepository.getUserPlants().collectLatest { plants ->
@@ -325,19 +324,6 @@ class PlantViewModel @Inject constructor(
         }
     }
 
-    fun deletePlant(plantId: String) {
-        viewModelScope.launch {
-            try {
-                val result = plantRepository.deletePlant(plantId)
-                if (result.isSuccess) {
-                    getUserPlants()
-                }
-            } catch (e: Exception) {
-                // Handle error
-            }
-        }
-    }
-
     fun getFilterOptions(): Map<String, List<FilterOption>> {
         return mapOf(
             "sunlight" to listOf(
@@ -360,24 +346,6 @@ class PlantViewModel @Inject constructor(
                 FilterOption("Hard", "Hard")
             ),
         )
-    }
-
-    fun addTask(day: String, description: String, hour: Int, minute: Int, icon: ImageVector) {
-        val time = String.format("%02d:%02d", hour, minute)
-        val fullDescription = "$description|$time"
-        _tasksMap.update { currentMap ->
-            val updatedList = currentMap[day].orEmpty().toMutableList().apply {
-                add(fullDescription to icon)
-            }
-            currentMap + (day to updatedList)
-        }
-    }
-
-    fun removeTask(day: String, taskPair: Pair<String, ImageVector>) {
-        _tasksMap.update { currentMap ->
-            val updatedList = currentMap[day].orEmpty().toMutableList().apply { remove(taskPair) }
-            currentMap + (day to updatedList)
-        }
     }
 
     fun updatePlantName(plantId: String?, newName: String) {

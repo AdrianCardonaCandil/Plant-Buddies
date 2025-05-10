@@ -144,5 +144,67 @@ module.exports = (UserModel, PlantModel) => {
         }
     })
 
+    /**
+     * Obtiene las tareas de un usuario.
+     * @name api/users/tasks
+     */
+    router.get('/tasks', tokenVerify, async (req, res) => {
+        try {
+            const user = User.parse({...req.user, ...req.body});
+            if (user) {
+                const tasks = await userModel.getTasks(user.uid)
+                return res.status(200).json({
+                    message: 'Tareas obtenidas correctamente.',
+                    tasks: tasks
+                })
+            }
+        } catch (error) {
+            return res.status(500).json({
+                message: error.message
+            })
+        }
+    })
+
+    /**
+     * Añade una tarea a un usuario.
+     * @name api/users/tasks
+     */
+    router.post('/tasks', tokenVerify, async (req, res) => {
+        try {
+            const user = User.parse({...req.user});
+            if (user) {
+                const task = await userModel.addTask(user.uid, req.body)
+                return res.status(200).json({
+                    message: 'Tarea añadida correctamente.',
+                    task: task
+                })
+            }
+        } catch (error) {
+            return res.status(500).json({
+                message: error.message
+            })
+        }
+    })
+
+    /**
+     * Elimina una tarea de un usuario.
+     * @name api/users/tasks/:id
+     */
+    router.delete('/tasks/:id', tokenVerify, async (req, res) => {
+        try {
+            const user = User.parse({...req.user, ...req.body});
+            if (user) {
+                await userModel.removeTask(user.uid, req.params.id)
+                return res.status(200).json({
+                    message: 'Tarea eliminada correctamente.',
+                })
+            }
+        } catch (error) {
+            return res.status(500).json({
+                message: error.message
+            })
+        }
+    })
+
     return router;
 }

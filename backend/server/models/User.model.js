@@ -93,6 +93,32 @@ class UserModel {
      * @throws {Error} Error al obtener las plantas favoritas.
      */
     getFavorites = (uid) => this.service.getFavorites(uid);
+
+    /**
+     * Obtiene las tareas de un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @returns {Promise<Task[]>} Promesa de las tareas.
+     * @throws {Error} Error al obtener las tareas.
+     */
+    getTasks = (uid) => this.service.getTasks(uid);
+
+    /**
+     * Añade una tarea a un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @param {Task} task - Objeto con los datos de la tarea.
+     * @returns {Promise<Task>} Promesa de la tarea añadida.
+     * @throws {Error} Error al añadir la tarea.
+     */
+    addTask = (uid, task) => this.service.addTask(uid, task);
+
+    /**
+     * Elimina una tarea de un usuario.
+     * @param {string} uid - Identificador único del usuario.
+     * @param {string} taskId - Identificador único de la tarea.
+     * @returns {Promise<void>} Promesa de la tarea eliminada.
+     * @throws {Error} Error al eliminar la tarea.
+     */
+    removeTask = (uid, taskId) => this.service.removeTask(uid, taskId);
 }
 
 module.exports = UserModel;

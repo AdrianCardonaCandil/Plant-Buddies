@@ -1,9 +1,6 @@
 package com.example.plantbuddiesapp.data.repository
 import android.content.Context
 import android.net.Uri
-import com.example.plantbuddiesapp.data.dto.PlantSearchRequest
-import com.example.plantbuddiesapp.data.dto.ScheduleResponseDto
-import com.example.plantbuddiesapp.data.dto.TaskDto
 import com.example.plantbuddiesapp.data.dto.UpdatePlantNameDto
 import com.example.plantbuddiesapp.data.mapper.toDomain
 import com.example.plantbuddiesapp.data.services.PlantService
@@ -243,38 +240,6 @@ class PlantRepositoryImpl @Inject constructor(
             }
         }
         return file
-    }
-
-    override suspend fun addTask(date: String, taskDto: TaskDto): Result<ScheduleResponseDto> {
-        return try {
-            val token = tokenManager.getToken() ?: return Result.failure(Exception("Not authenticated"))
-            val response = plantService.addTask(token, date, taskDto)
-            if (response.isSuccessful) {
-                response.body()?.let {
-                    Result.success(it)
-                } ?: Result.failure(Exception("Empty response"))
-            } else {
-                Result.failure(Exception("Failed to add task: ${response.code()}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun deleteTask(taskId: String): Result<ScheduleResponseDto> {
-        return try {
-            val token = tokenManager.getToken() ?: return Result.failure(Exception("Not authenticated"))
-            val response = plantService.deleteTask(token, taskId)
-            if (response.isSuccessful) {
-                response.body()?.let {
-                    Result.success(it)
-                } ?: Result.failure(Exception("Empty response"))
-            } else {
-                Result.failure(Exception("Failed to delete task: ${response.code()}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
     }
 
     override suspend fun updatePlant(plant: Plant): Result<Plant> {
