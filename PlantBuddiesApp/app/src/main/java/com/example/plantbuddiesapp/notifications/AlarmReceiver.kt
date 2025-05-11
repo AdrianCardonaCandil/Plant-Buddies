@@ -16,12 +16,11 @@ class AlarmReceiver : BroadcastReceiver() {
         val content = intent.getStringExtra("notification_content") ?: ""
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        val notification = NotificationCompat.Builder(context, id)
+        val notification = NotificationCompat.Builder(context, "plant-care-channel")
             .setSmallIcon(R.drawable.plants_empty_photo)
             .setContentTitle(title)
             .setContentText(content)
             .build()
         notificationManager.notify(id.hashCode(), notification)
-        println("Notification received")
     }
 }

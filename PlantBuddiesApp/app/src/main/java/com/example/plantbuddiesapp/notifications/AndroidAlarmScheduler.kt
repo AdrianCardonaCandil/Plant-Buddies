@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import com.example.plantbuddiesapp.data.services.PlantCareNotificationService
+import java.time.LocalDateTime
 import java.time.ZoneId
 import javax.inject.Inject
 
@@ -44,12 +45,23 @@ class AndroidAlarmScheduler @Inject constructor(
         )
     }
 
+    override fun cancel(requestId: String) {
+        alarmManager.cancel(
+            PendingIntent.getBroadcast(
+                context,
+                requestId.hashCode(),
+                Intent(context, AlarmReceiver::class.java),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        )
+    }
+
     private fun createPendingIntent(request: AlarmRequest): PendingIntent {
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             putExtra("notification_id", request.id)
             putExtra("notification_title", request.title)
             putExtra("notification_content", request.content)
         }
-        return PendingIntent.getBroadcast(context, request.hashCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        return PendingIntent.getBroadcast(context, request.id.hashCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
 }

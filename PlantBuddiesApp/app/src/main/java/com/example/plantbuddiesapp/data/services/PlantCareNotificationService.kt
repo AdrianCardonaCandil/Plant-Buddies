@@ -35,6 +35,10 @@ class PlantCareNotificationService @Inject constructor(
         )
     }
 
+    fun deleteNotification(id: String) {
+        alarmScheduler.cancel(id)
+    }
+
     companion object {
         const val CHANNEL_ID = "plant-care-channel"
     }

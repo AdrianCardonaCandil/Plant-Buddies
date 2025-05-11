@@ -43,7 +43,6 @@ class PlantViewModel @Inject constructor(
     val selectedPlant: StateFlow<Plant?> = _selectedPlant.asStateFlow()
 
     private val _savePlantState = MutableStateFlow<SavePlantState>(SavePlantState.Initial)
-    val savePlantState: StateFlow<SavePlantState> = _savePlantState.asStateFlow()
 
     private val _searchResults = MutableStateFlow<List<Plant>>(emptyList())
     val searchResults: StateFlow<List<Plant>> = _searchResults.asStateFlow()
@@ -62,12 +61,8 @@ class PlantViewModel @Inject constructor(
     private val _sunlightNeeds = MutableStateFlow<Map<String?, Float>>(emptyMap())
 
     private val _tasksMap = MutableStateFlow<Map<String, List<Pair<String, ImageVector>>>>(emptyMap())
-    val tasksMap: StateFlow<Map<String, List<Pair<String, ImageVector>>>> = _tasksMap.asStateFlow()
 
     init {
-        loadUserPlants()
-        loadFavoritePlants()
-
         viewModelScope.launch {
             _searchQuery
                 .debounce(300) // 300ms debounce

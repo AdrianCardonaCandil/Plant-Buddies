@@ -30,21 +30,24 @@ class ScheduleViewModel @Inject constructor(
     private val _tasksForSelectedDate = MutableStateFlow<List<Task>>(emptyList<Task>())
     val tasksForSelectedDate: StateFlow<List<Task>> = _tasksForSelectedDate.asStateFlow()
 
+    private var _nearestTask: Task? = null
+
     private fun loadAllTasks(tasks: List<Task>) {
         _tasks.clear()
         _tasks.addAll(tasks)
     }
 
-    init {
-        loadUserTasks()
-    }
-
-    private fun loadUserTasks() {
+    fun loadUserTasks() {
         viewModelScope.launch {
             userRepository.getUserTasks().fold(
                 onSuccess = { tasks ->
                     loadAllTasks(tasks)
                     loadTasksForDate()
+                    _nearestTask = tasks.sortedBy { it.dateTime }.firstOrNull { it.dateTime.isAfter(LocalDateTime.now()) }
+                    if (_nearestTask != null) {
+                        deleteTaskNotification(_nearestTask!!.id!!)
+                        scheduleTaskNotification(_nearestTask!!)
+                    }
                 },
                 onFailure = { error ->
                     println("Error loading user tasks: $error")
@@ -71,13 +74,26 @@ class ScheduleViewModel @Inject constructor(
             userRepository.addTask(task)
             loadUserTasks()
         }
+    }
 
+    private fun scheduleTaskNotification(task: Task) {
+        /*
+        println("Scheduling notification for task ${task.id}")
+        println("Task type: ${task.type}")
+        println("Task label: ${task.label}")
+        println("Task date: ${task.dateTime}")
+         */
         plantCareNotificationService.scheduleNotification(
-            id = "plant-care-channel",
+            id = task.id!!,
             title = task.type.toString(),
             text = task.label,
-            triggerTime = date
+            triggerTime = task.dateTime
         )
+    }
+
+    private fun deleteTaskNotification(taskId: String) {
+        //println("Deleting notification for task $taskId")
+        plantCareNotificationService.deleteNotification(taskId)
     }
 
     fun deleteTask(taskId: String) {

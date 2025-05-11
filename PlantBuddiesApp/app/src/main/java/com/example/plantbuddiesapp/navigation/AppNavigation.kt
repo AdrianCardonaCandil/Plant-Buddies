@@ -70,15 +70,15 @@ fun AppNavigation() {
                     }
 
                     composable(Screen.MyPlants.route) {
-                        MyPlantsScreen(navController, viewModel)
+                        MyPlantsScreen(navController, viewModel, authViewModel)
                     }
 
                     composable(Screen.FavoritePlants.route) {
-                        FavoritePlantsScreen(navController, viewModel)
+                        FavoritePlantsScreen(navController, viewModel, authViewModel)
                     }
 
                     composable(Screen.Schedule.route) {
-                        ScheduleScreen(navController, scheduleViewModel)
+                        ScheduleScreen(navController, scheduleViewModel, authViewModel)
                     }
 
                     composable(Screen.User.route) { UserScreen(navController) }

@@ -27,21 +27,43 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.plantbuddiesapp.R
 import com.example.plantbuddiesapp.domain.model.Plant
 import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
 import coil.compose.rememberAsyncImagePainter
+import com.example.plantbuddiesapp.navigation.Screen
+import com.example.plantbuddiesapp.presentation.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyPlantsScreen(
     navController: NavHostController,
-    viewModel: PlantViewModel = hiltViewModel()
+    viewModel: PlantViewModel = hiltViewModel(),
+    authViewModel: AuthViewModel = hiltViewModel()
 ) {
     val allPlants = viewModel.myPlants
     var filteredPlants by remember { mutableStateOf(allPlants.toList()) }
     var showFilters by remember { mutableStateOf(false) }
     var isGridView by remember { mutableStateOf(false) }
+    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+
+    LaunchedEffect(isLoggedIn) {
+        if (!isLoggedIn) {
+            navController.navigate(Screen.Login.route) {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+        }
+    }
+
+    if (!isLoggedIn) {
+        return
+    }
+
+    viewModel.loadUserPlants()
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(

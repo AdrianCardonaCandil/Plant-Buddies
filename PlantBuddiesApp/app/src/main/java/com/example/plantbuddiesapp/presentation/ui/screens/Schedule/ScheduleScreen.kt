@@ -30,8 +30,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.plantbuddiesapp.R
 import com.example.plantbuddiesapp.domain.model.Task
+import com.example.plantbuddiesapp.navigation.Screen
+import com.example.plantbuddiesapp.presentation.viewmodel.AuthViewModel
 import com.example.plantbuddiesapp.presentation.viewmodel.ScheduleViewModel
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -40,7 +43,10 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun ScheduleScreen(navController: NavController, viewModel: ScheduleViewModel = hiltViewModel())
+fun ScheduleScreen(navController: NavController,
+                   viewModel: ScheduleViewModel = hiltViewModel(),
+                   authViewModel: AuthViewModel = hiltViewModel()
+)
 {
     var selectedDay by remember { mutableStateOf(Calendar.getInstance()) }
     var weekOffset by remember { mutableStateOf(0) }
@@ -61,6 +67,25 @@ fun ScheduleScreen(navController: NavController, viewModel: ScheduleViewModel = 
 
     val weekDays = remember(weekOffset) { getWeekDays(weekOffset) }
     var isWeekView by remember { mutableStateOf(true) }
+
+    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+
+    // Redirect to Login if not logged in
+    LaunchedEffect(isLoggedIn) {
+        if (!isLoggedIn) {
+            navController.navigate(Screen.Login.route) {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+        }
+    }
+    if (!isLoggedIn) {
+        return
+    }
+
+    viewModel.loadUserTasks()
 
     Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {

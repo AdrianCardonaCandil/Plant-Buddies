@@ -54,18 +54,40 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.plantbuddiesapp.R
 import com.example.plantbuddiesapp.domain.model.Plant
 import com.example.plantbuddiesapp.presentation.viewmodel.PlantViewModel
 import coil.compose.rememberAsyncImagePainter
+import com.example.plantbuddiesapp.navigation.Screen
+import com.example.plantbuddiesapp.presentation.viewmodel.AuthViewModel
 
 @Composable
 fun FavoritePlantsScreen(
     navController: NavHostController,
-    viewModel: PlantViewModel = hiltViewModel()
+    viewModel: PlantViewModel = hiltViewModel(),
+    authViewModel: AuthViewModel = hiltViewModel()
 ) {
     // We're using the ViewModel's myPlants list which is updated in the ViewModel
     val plants by viewModel.userFavoritePlants.collectAsState()
+    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+
+    LaunchedEffect(isLoggedIn) {
+        if (!isLoggedIn) {
+            navController.navigate(Screen.Login.route) {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+        }
+    }
+
+    if (!isLoggedIn) {
+        return
+    }
+
+    viewModel.loadFavoritePlants()
 
     Box(
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
