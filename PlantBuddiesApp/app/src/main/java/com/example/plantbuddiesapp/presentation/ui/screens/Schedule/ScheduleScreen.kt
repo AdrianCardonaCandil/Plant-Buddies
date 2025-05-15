@@ -258,7 +258,7 @@ fun ScheduleScreen(navController: NavController,
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))
-                        Text("Seleccionar hora:", style = MaterialTheme.typography.labelLarge)
+                        Text("Select time:", style = MaterialTheme.typography.labelLarge)
 
                         val timeText = String.format("%02d:%02d", selectedHour, selectedMinute)
                         Button(onClick = {
@@ -273,7 +273,7 @@ fun ScheduleScreen(navController: NavController,
                                 true
                             ).show()
                         }) {
-                            Text("Hora seleccionada: $timeText")
+                            Text("Time: $timeText")
                         }
 
                         Spacer(modifier = Modifier.height(12.dp))
